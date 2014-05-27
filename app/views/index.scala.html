@@ -1,0 +1,20 @@
+@(beerbrands: Seq[BeerBrand])
+
+@main("Beer DB") {
+
+	<table class="table table-striped">
+		<thead>
+		<tr><th>Name</th><th>Country</th><th>Style</th><th>Strength</th></tr>
+		</thead>
+		<tbody>
+	@for(beer <- beerbrands) {
+		<tr>
+			<td>@beer.name</td>
+			<td>@beer.country</td>
+			<td>@beer.style</td>
+			<td>@beer.strength</td>
+		</tr>
+	}
+		</tbody>
+	</table>
+}
