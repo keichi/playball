@@ -1,13 +1,6 @@
 @(columns: Seq[ColumnBaseType])
 
 @main("Model Dump") {
-
-	<ul>
-	@for(column <- columns) {
-		<li>@column.toString</li>
-	}
-	</ul>
-
 	<form class="form-horizontal" role="form">
 	@for(column <- columns) {
 		<div class="form-group">
@@ -23,7 +16,19 @@
 	    	case BooleanColumn(_, _) => {
 		    	<input type="checkbox" class="form-control" id="@column.name"></input>
 	    	}
+	    	case ShortColumn(_, _) => {
+		    	<input type="text" class="form-control" id="@column.name" placeholder="@column.label"></input>
+	    	}
+	    	case IntColumn(_, _) => {
+		    	<input type="text" class="form-control" id="@column.name" placeholder="@column.label"></input>
+	    	}
+	    	case LongColumn(_, _) => {
+		    	<input type="text" class="form-control" id="@column.name" placeholder="@column.label"></input>
+	    	}
 	    	case DoubleColumn(_, _) => {
+		    	<input type="text" class="form-control" id="@column.name" placeholder="@column.label"></input>
+	    	}
+	    	case FloatColumn(_, _) => {
 		    	<input type="text" class="form-control" id="@column.name" placeholder="@column.label"></input>
 	    	}
 	    	case OptionColumn(_, _, options) => {
