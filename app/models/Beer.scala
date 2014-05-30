@@ -6,7 +6,7 @@ import scala.slick.lifted.Tag
 import scala.annotation.StaticAnnotation
 
 case class ignore() extends StaticAnnotation
-case class description(message: String) extends StaticAnnotation
+case class label(message: String) extends StaticAnnotation
 
 abstract class Enum extends Enumeration {
   implicit val enumColumnType = MappedColumnType.base[Value, Int](
@@ -33,13 +33,13 @@ case class BeerBrand(
 class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
   @ignore
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-  @description("名前")
+  @label("名前")
   def name = column[String]("name", O.NotNull)
-  @description("原産国")
+  @label("原産国")
   def country = column[String]("country", O.NotNull)
-  @description("種類")
+  @label("種類")
   def style = column[BeerStyle]("style", O.NotNull)
-  @description("アルコール度数")
+  @label("アルコール度数")
   def strength = column[Double]("strength", O.NotNull)
   def * = (id.?, name, country, style, strength) <> (BeerBrand.tupled, BeerBrand.unapply _)
 }
