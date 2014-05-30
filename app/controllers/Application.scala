@@ -38,6 +38,7 @@ object Application extends Controller {
             .map({ m => 
               val name = m.name.toString
               val colType = m.returnType.asInstanceOf[ru.TypeRefApi].args.head
+              val preType = colType.asInstanceOf[ru.TypeRefApi].pre
 
               if (colType <:< ru.typeOf[String]) {
                 StringColumn(name)
@@ -53,8 +54,23 @@ object Application extends Controller {
                 DoubleColumn(name)
               } else if (colType <:< ru.typeOf[Float]) {
                 FloatColumn(name)
-              } else if (colType.baseClasses.exists(s => s.asClass.toType <:< ru.typeOf[Enum])) {
-                OptionColumn(name, Map())
+              } else if (colType.asInstanceOf[ru.TypeRefApi].pre <:< ru.typeOf[Enum]) {
+                val runtimeMirror = ru.typeTag[preType.type].mirror 
+                val moduleMirror = runtimeMirror.reflectModule(preType.termSymbol.asModule)
+                val obj = moduleMirror.instance
+                
+                val map = preType.declarations
+                  .filter(_.isTerm)
+                  .filter(_.asTerm.isVal)
+                  .map({t =>
+                    val o = runtimeMirror.reflect(obj).reflectField(t.asTerm).get
+                    val item = o.asInstanceOf[Enumeration#Value]
+                    (item.toString, item.id)
+                  })
+                  .toMap
+
+
+                OptionColumn(name, map)
               } else {
                 InvalidColumn(name)
               }
