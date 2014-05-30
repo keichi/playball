@@ -15,9 +15,9 @@ object Global extends GlobalSettings {
       DB.withSession { implicit s: Session =>
         if (BeerBrands.count == 0) {
           Seq(
-            BeerBrand(None, "Zillertal", "Austria", BeerStyle.Weissbier, 5.0),
-            BeerBrand(None, "Heineken", "Netherlands", BeerStyle.Pilsener, 5.0),
-            BeerBrand(None, "Bitburger", "German", BeerStyle.Pilsener, 4.6)
+            BeerBrand(None, "Zillertal", "Austria", BeerStyle.Weissbier, true, 5.0, ""),
+            BeerBrand(None, "Heineken", "Netherlands", BeerStyle.Pilsener, false, 5.0, ""),
+            BeerBrand(None, "Bitburger", "German", BeerStyle.Pilsener, true, 4.6, "")
           ).foreach(BeerBrands.insert)
         }
       }

@@ -8,21 +8,20 @@ import scala.reflect.runtime.{universe => ru}
 import models._
 import views._
 
-sealed trait ColumnType
+sealed abstract class ColumnBaseType(val name: String, val label: Option[String])
 
-case class StringColumn(description: String) extends ColumnType
-case class BooleanColumn(description: String) extends ColumnType
-case class DateColumn(description: String) extends ColumnType
-case class TimeColumn(description: String) extends ColumnType
+case class StringColumn(override val name: String, override val label: Option[String], val rows: Option[Int]) extends ColumnBaseType(name, label)
+case class BooleanColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class DateColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
 
-case class ShortColumn(description: String) extends ColumnType
-case class IntColumn(description: String) extends ColumnType
-case class LongColumn(description: String) extends ColumnType
-case class DoubleColumn(description: String) extends ColumnType
-case class FloatColumn(description: String) extends ColumnType
+case class ShortColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class IntColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class LongColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class DoubleColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class FloatColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
 
-case class OptionColumn(description: String, options: Map[String, Int]) extends ColumnType
-case class InvalidColumn(description: String) extends ColumnType
+case class OptionColumn(override val name: String, override val label: Option[String], options: Map[String, Int]) extends ColumnBaseType(name, label)
+case class InvalidColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
 
 object Application extends Controller {
   def index = DBAction { implicit rs =>
@@ -37,23 +36,37 @@ object Application extends Controller {
             .filter(!_.annotations.exists(_.tpe <:< ru.typeOf[ignore]))
             .map({ m => 
               val name = m.name.toString
+              val label = m.annotations
+                .find(_.tpe <:< ru.typeOf[label])
+                .flatMap(_.scalaArgs.head match {
+                  case ru.Literal(ru.Constant(s)) => Some(s.asInstanceOf[String])
+                  case _ => None
+                })
+              
               val colType = m.returnType.asInstanceOf[ru.TypeRefApi].args.head
               val preType = colType.asInstanceOf[ru.TypeRefApi].pre
 
               if (colType <:< ru.typeOf[String]) {
-                StringColumn(name)
-              } else if (colType <:< ru.typeOf[Boolean]) {
-                BooleanColumn(name)
-              } else if (colType <:< ru.typeOf[Short]) {
-                ShortColumn(name)
-              } else if (colType <:< ru.typeOf[Int]) {
-                IntColumn(name)
-              } else if (colType <:< ru.typeOf[Long]) {
-                LongColumn(name)
-              } else if (colType <:< ru.typeOf[Double]) {
-                DoubleColumn(name)
-              } else if (colType <:< ru.typeOf[Float]) {
-                FloatColumn(name)
+                val rows = m.annotations
+                  .find(_.tpe <:< ru.typeOf[text])
+                  .flatMap(_.scalaArgs.head match {
+                    case ru.Literal(ru.Constant(s)) => Some(s.asInstanceOf[Int])
+                    case _ => None
+                  })
+
+                StringColumn(name, label, rows)
+              } else if (colType =:= ru.typeOf[Boolean]) {
+                BooleanColumn(name, label)
+              } else if (colType =:= ru.typeOf[Short]) {
+                ShortColumn(name, label)
+              } else if (colType =:= ru.typeOf[Int]) {
+                IntColumn(name, label)
+              } else if (colType =:= ru.typeOf[Long]) {
+                LongColumn(name, label)
+              } else if (colType =:= ru.typeOf[Double]) {
+                DoubleColumn(name, label)
+              } else if (colType =:= ru.typeOf[Float]) {
+                FloatColumn(name, label)
               } else if (colType.asInstanceOf[ru.TypeRefApi].pre <:< ru.typeOf[Enum]) {
                 val runtimeMirror = ru.typeTag[preType.type].mirror 
                 val moduleMirror = runtimeMirror.reflectModule(preType.termSymbol.asModule)
@@ -70,9 +83,9 @@ object Application extends Controller {
                   .toMap
 
 
-                OptionColumn(name, map)
+                OptionColumn(name, label, map)
               } else {
-                InvalidColumn(name)
+                InvalidColumn(name, label)
               }
             })
             .toSeq

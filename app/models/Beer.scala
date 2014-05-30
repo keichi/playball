@@ -7,6 +7,7 @@ import scala.annotation.StaticAnnotation
 
 case class ignore() extends StaticAnnotation
 case class label(message: String) extends StaticAnnotation
+case class text(rows: Int) extends StaticAnnotation
 
 abstract class Enum extends Enumeration {
   implicit val enumColumnType = MappedColumnType.base[Value, Int](
@@ -27,7 +28,9 @@ case class BeerBrand(
   name: String,
   country: String,
   style: BeerStyle,
-  strength: Double
+  tasty: Boolean,
+  strength: Double,
+  comment: String
 )
 
 class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
@@ -36,12 +39,16 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
   @label("名前")
   def name = column[String]("name", O.NotNull)
   @label("原産国")
-  def country = column[String]("country", O.NotNull)
+  def country = column[String]("country")
   @label("種類")
-  def style = column[BeerStyle]("style", O.NotNull)
+  def style = column[BeerStyle]("style")
+  @label("美味しい")
+  def tasty = column[Boolean]("tasty")
   @label("アルコール度数")
-  def strength = column[Double]("strength", O.NotNull)
-  def * = (id.?, name, country, style, strength) <> (BeerBrand.tupled, BeerBrand.unapply _)
+  def strength = column[Double]("strength")
+  @label("コメント") @text(5)
+  def comment = column[String]("comment")
+  def * = (id.?, name, country, style, tasty, strength, comment) <> (BeerBrand.tupled, BeerBrand.unapply _)
 }
 
 object BeerBrands {
