@@ -8,20 +8,23 @@ import scala.reflect.runtime.{universe => ru}
 import models._
 import views._
 
-sealed abstract class ColumnBaseType(val name: String, val label: Option[String])
+sealed abstract trait ColumnBase {
+  val name: String
+  val label: Option[String]
+}
 
-case class StringColumn(override val name: String, override val label: Option[String], val rows: Option[Int]) extends ColumnBaseType(name, label)
-case class BooleanColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
-case class DateColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class StringColumn(val name: String, val label: Option[String], val rows: Option[Int]) extends ColumnBase
+case class BooleanColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class DateColumn(val name: String, val label: Option[String]) extends ColumnBase
 
-case class ShortColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
-case class IntColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
-case class LongColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
-case class DoubleColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
-case class FloatColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class ShortColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class IntColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class LongColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class DoubleColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class FloatColumn(val name: String, val label: Option[String]) extends ColumnBase
 
-case class OptionColumn(override val name: String, override val label: Option[String], options: Map[String, Int]) extends ColumnBaseType(name, label)
-case class InvalidColumn(override val name: String, override val label: Option[String]) extends ColumnBaseType(name, label)
+case class OptionColumn(val name: String, val label: Option[String], options: Map[String, Int]) extends ColumnBase
+case class InvalidColumn(val name: String, val label: Option[String]) extends ColumnBase
 
 object Application extends Controller {
   def index = DBAction { implicit rs =>
