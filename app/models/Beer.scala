@@ -18,7 +18,12 @@ abstract class Enum extends Enumeration {
 
 object BeerStyle extends Enum {
   type BeerStyle = Value
-  val Pilsener, Weissbier, IPA, Stout, Porter, AmberAle = Value
+  val Pilsener = Value("ピルスナー")
+  val Weissbier = Value("白ビール")
+  val IPA = Value("IPA")
+  val Stout = Value("スタウト")
+  val Porter = Value("ポーター")
+  val AmberAle = Value("アンバーエール")
 }
 
 import BeerStyle.BeerStyle
