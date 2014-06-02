@@ -32,10 +32,14 @@ object Application extends Controller {
   }
 
   def test = Action {
-    val cols = ru.typeOf[BeerBrands].declarations
+    val ctor = ru.typeOf[BeerBrand].declarations
             .filter(_.isMethod)
             .map(_.asMethod)
-            .filter(_.returnType <:< ru.typeOf[slick.lifted.Column[_]])
+            .find(_.isConstructor)
+            .get
+
+    val cols = ctor.asMethod.paramss.head
+            .filter(_.isTerm)
             .filter(!_.annotations.exists(_.tpe <:< ru.typeOf[ignore]))
             .map({ m => 
               val name = m.name.toString
@@ -46,7 +50,7 @@ object Application extends Controller {
                   case _ => None
                 })
               
-              val colType = m.returnType.asInstanceOf[ru.TypeRefApi].args.head
+              val colType = m.typeSignature
               val preType = colType.asInstanceOf[ru.TypeRefApi].pre
 
               if (colType <:< ru.typeOf[String]) {

@@ -29,29 +29,29 @@ object BeerStyle extends Enum {
 import BeerStyle.BeerStyle
 
 case class BeerBrand(
+  @ignore
   id: Option[Long],
+  @label("名前")
   name: String,
+  @label("原産国")
   country: String,
+  @label("種類")
   style: BeerStyle,
+  @label("美味しい")
   tasty: Boolean,
+  @label("アルコール度数")
   strength: Double,
+  @label("コメント") @text(5)
   comment: String
 )
 
 class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
-  @ignore
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-  @label("名前")
   def name = column[String]("name", O.NotNull)
-  @label("原産国")
   def country = column[String]("country")
-  @label("種類")
   def style = column[BeerStyle]("style")
-  @label("美味しい")
   def tasty = column[Boolean]("tasty")
-  @label("アルコール度数")
   def strength = column[Double]("strength")
-  @label("コメント") @text(5)
   def comment = column[String]("comment")
   def * = (id.?, name, country, style, tasty, strength, comment) <> (BeerBrand.tupled, BeerBrand.unapply _)
 }
