@@ -5,10 +5,12 @@ import scala.slick.lifted.Tag
 
 import scala.annotation.StaticAnnotation
 
+// modelクラスのメンバに使えるアノテーション
 case class ignore() extends StaticAnnotation
 case class label(message: String) extends StaticAnnotation
 case class text(rows: Int) extends StaticAnnotation
 
+// EnumerationからTable[A]へのmappingを自動的に行うためのクラス
 abstract class Enum extends Enumeration {
   implicit val enumColumnType = MappedColumnType.base[Value, Int](
     _.id,
@@ -16,6 +18,7 @@ abstract class Enum extends Enumeration {
   )
 }
 
+// 列挙型はEnumを継承する。使い方はEnumerationと同じ。
 object BeerStyle extends Enum {
   type BeerStyle = Value
   val Pilsener = Value("ピルスナー")
@@ -28,6 +31,8 @@ object BeerStyle extends Enum {
 
 import BeerStyle.BeerStyle
 
+// case classをTable[A]にmappingして使うことを前提にしているので、
+// まずはcase classを定義する。
 case class BeerBrand(
   @ignore
   id: Option[Long],
@@ -45,6 +50,7 @@ case class BeerBrand(
   comment: String
 )
 
+// case classをmappingするTable[A]を定義する
 class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name", O.NotNull)
