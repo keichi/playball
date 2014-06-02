@@ -31,6 +31,12 @@ object BeerStyle extends Enum {
 
 import BeerStyle.BeerStyle
 
+trait ModelBase {
+  val id: Option[Long]
+  val updatedAt: java.sql.Date
+  val createdAt: java.sql.Date
+}
+
 // case classをTable[A]にmappingして使うことを前提にしているので、
 // まずはcase classを定義する。
 case class BeerBrand(
@@ -62,27 +68,36 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
   def * = (id.?, name, country, style, tasty, strength, comment) <> (BeerBrand.tupled, BeerBrand.unapply _)
 }
 
-object BeerBrands {
-  val beerbrands = TableQuery[BeerBrands]
+// A: モデルクラス, B: Aをmappingするテーブル定義クラス
+abstract class DOA[A, B <: Table[A]] {
+  protected val query: TableQuery[B]
 
-  def list(implicit s: Session): Seq[BeerBrand] = {
-    beerbrands.list
+  def list(implicit s: Session): Seq[A] = {
+    query.list
   }
 
   def count(implicit s: Session): Int = {
-    Query(beerbrands.length).first
+    Query(query.length).first
   }
 
-  def insert(beer: BeerBrand)(implicit s: Session) {
-    beerbrands.insert(beer)
+  def insert(item: A)(implicit s: Session) {
+    query.insert(item)
   }
 
-  def update(id: Long, beer: BeerBrand)(implicit s: Session) {
-    val newBeer: BeerBrand = beer.copy(Some(id))
-    beerbrands.where(_.id === id).update(newBeer)
+  def toCSV(implicit s: Session): String = {
+    ""
   }
 
-  def delete(id: Long)(implicit s: Session) {
-    beerbrands.where(_.id === id).delete
-  }
+  // def update(id: Long, item: A)(implicit s: Session) {
+  //   val newItem: A = item.copy(Some(id))
+  //   query.where(_.id === id).update(newItem)
+  // }
+
+  // def delete(id: Long)(implicit s: Session) {
+  //   query.where(_.id === id).delete
+  // }
+}
+
+object BeerBrands extends DOA[BeerBrand, BeerBrands] {
+  val query = TableQuery[BeerBrands]
 }
