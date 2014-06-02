@@ -5,6 +5,10 @@ import play.api.mvc._
 import play.api.db.slick._
 import scala.reflect.runtime.{universe => ru}
 
+import play.api.data._
+import play.api.data.Forms._
+import play.api.data.format.Formats._
+
 import models._
 import views._
 
@@ -27,11 +31,11 @@ case class OptionColumn(val name: String, val label: Option[String], options: Ma
 case class InvalidColumn(val name: String, val label: Option[String]) extends ColumnBase
 
 object Application extends Controller {
-  def index = DBAction { implicit rs =>
+  def index = DBAction { implicit s =>
     Ok(views.html.index(BeerBrands.list))
   }
 
-  def test = Action {
+  def showForm = Action {
     val ctor = ru.typeOf[BeerBrand].declarations
             .filter(_.isMethod)
             .map(_.asMethod)
@@ -98,5 +102,11 @@ object Application extends Controller {
             .toSeq
 
     Ok(views.html.test(cols))
+  }
+
+  def postForm = Action { request =>
+    println(request.body)
+
+    Redirect("/")
   }
 }
