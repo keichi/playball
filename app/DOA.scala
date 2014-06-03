@@ -44,6 +44,8 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
     query.where(_.id === id).firstOption
   }
 
+  def findByPK(id: Long)(implicit s: Session): Option[A] = findById(id)
+
   def update(id: Long, item: A)(implicit s: Session, ct: scala.reflect.ClassTag[A]) = {
     lazy val runtimeMirror = ru.typeTag[A].mirror
     val instanceMirror = runtimeMirror.reflect(item)
