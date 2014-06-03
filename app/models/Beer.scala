@@ -3,6 +3,9 @@ package models
 import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
+import org.joda.time.DateTime
+import com.github.tototoshi.slick.H2JodaSupport._
+
 import play.boy.doa._
 import play.boy.annotation._
 import play.boy.mapping._
@@ -36,7 +39,11 @@ case class BeerBrand(
   @label("アルコール度数")
   strength: Double,
   @label("コメント") @text(5)
-  comment: String
+  comment: String,
+  @ignore
+  createdAt: DateTime = new DateTime,
+  @ignore
+  updatedAt: DateTime = new DateTime
 )
 
 // case classをmappingするTable[A]を定義する
@@ -48,7 +55,9 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
   def tasty = column[Boolean]("tasty")
   def strength = column[Double]("strength")
   def comment = column[String]("comment")
-  def * = (id.?, name, country, style, tasty, strength, comment) <> (BeerBrand.tupled, BeerBrand.unapply _)
+  def createdAt = column[DateTime]("created_at")
+  def updatedAt = column[DateTime]("updated_at")
+  def * = (id.?, name, country, style, tasty, strength, comment, createdAt, updatedAt) <> (BeerBrand.tupled, BeerBrand.unapply _)
 }
 
 object BeerBrands extends DOA[BeerBrand, BeerBrands] {

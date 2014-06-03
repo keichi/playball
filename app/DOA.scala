@@ -1,11 +1,14 @@
 package play.boy.doa
 
 import scala.reflect.runtime.{universe => ru}
+import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 
 private[doa] object Duck {  
   type Model[A] = {
     val id: Option[Long]
+    val updatedAt: DateTime
+    val createdAt: DateTime
     def productIterator: Iterator[Any]
   }
   type Table = {
@@ -26,7 +29,7 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
       constructorSymbol.asMethod
     } else {
       val ctors = constructorSymbol.asTerm.alternatives
-      ctors.map { _.asMethod }.find { _.isPrimaryConstructor }.get
+      ctors.map(_.asMethod).find(_.isPrimaryConstructor).get
     }
 
   lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
@@ -44,7 +47,7 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
   }
 
   def create(args: Any*)(implicit s: Session): Long = {
-    val item = constructorMirror(args:_*).asInstanceOf[A]
+    val item = constructorMirror((args :+ new DateTime :+ new DateTime ):_*).asInstanceOf[A]
 
     (query returning query.map(_.id)) += item
   }
