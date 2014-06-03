@@ -5,14 +5,7 @@ import scala.slick.lifted.Tag
 
 import play.boy.doa._
 import play.boy.annotation._
-
-// EnumerationからTable[A]へのmappingを自動的に行うためのクラス
-abstract class Enum extends Enumeration {
-  implicit val enumColumnType = MappedColumnType.base[Value, Int](
-    _.id,
-    this.apply _
-  )
-}
+import play.boy.mapping._
 
 // 列挙型はEnumを継承する。使い方はEnumerationと同じ。
 object BeerStyle extends Enum {
