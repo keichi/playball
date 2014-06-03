@@ -35,15 +35,15 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag : scala.reflect.ClassTag, B <
 
   lazy val fieldSymbols = ru.typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
 
-  private def updateField(item: A, name: String, value: Any): A = {
+  private def updateField(item: A, kvs: Map[String, Any]): A = {
     val instanceMirror = runtimeMirror.reflect(item)
 
     val fieldValues = fieldSymbols.map(f =>
-      if (f.name.decoded == name) {
-          value
-        } else {
-          instanceMirror.reflectField(f).get
-      }).toSeq.reverse
+        kvs.get(f.name.decoded) match {
+          case Some(value) => value
+          case None => instanceMirror.reflectField(f).get
+        }
+      ).toSeq.reverse
 
     constructorMirror(fieldValues:_*).asInstanceOf[A]
   }
@@ -84,7 +84,7 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag : scala.reflect.ClassTag, B <
   def findByPK(id: Long)(implicit s: Session): Option[A] = findById(id)
 
   def update(id: Long, item: A)(implicit s: Session, ct: scala.reflect.ClassTag[A]) = {
-    val newItem = updateField(item, "id", Some(id))
+    val newItem = updateField(item, Map("id" -> Some(id), "updatedAt" -> new DateTime))
 
     query.where(_.id === id).update(newItem)
   }
