@@ -39,14 +39,14 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
     Query(query.length).first
   }
 
-  def insert(item: A)(implicit s: Session) {
-    query.insert(item)
+  def insert(item: A)(implicit s: Session): Long = {
+    (query returning query.map(_.id)) += item
   }
 
-  def create(args: Any*)(implicit s: Session) {
-    val instance = constructorMirror(args:_*).asInstanceOf[A]
+  def create(args: Any*)(implicit s: Session): Long = {
+    val item = constructorMirror(args:_*).asInstanceOf[A]
 
-    query.insert(instance)
+    (query returning query.map(_.id)) += item
   }
 
   def toCSV(implicit s: Session): String = {
