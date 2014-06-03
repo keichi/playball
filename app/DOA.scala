@@ -29,9 +29,28 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
     query.insert(item)
   }
 
+  def create(args: Any*)(implicit s: Session) {
+    lazy val runtimeMirror = ru.typeTag[A].mirror
+    lazy val classMirror = runtimeMirror.reflectClass(ru.typeOf[A].typeSymbol.asClass)
+
+    lazy val constructorSymbol = ru.typeOf[A].declaration(ru.nme.CONSTRUCTOR)
+    lazy val defaultConstructor =
+      if (constructorSymbol.isMethod) {
+        constructorSymbol.asMethod
+      } else {
+        val ctors = constructorSymbol.asTerm.alternatives
+        ctors.map { _.asMethod }.find { _.isPrimaryConstructor }.get
+      }
+
+    lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
+    val instance = constructorMirror(args:_*).asInstanceOf[A]
+
+    query.insert(instance)
+  }
+
   def toCSV(implicit s: Session): String = {
     val builder = new StringBuilder()
-    
+
     query.list.foreach({ row: A =>
       row.productIterator.foreach(c => builder ++= c.toString += ',')
       builder += '\n'
