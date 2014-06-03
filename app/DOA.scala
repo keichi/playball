@@ -17,7 +17,7 @@ private[doa] object Duck {
 }
 
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
-abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Table] {
+abstract class DOA[A <: Duck.Model[A] : ru.TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   protected val query: TableQuery[B]
 
   lazy val runtimeMirror = ru.typeTag[A].mirror
@@ -31,8 +31,22 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
       val ctors = constructorSymbol.asTerm.alternatives
       ctors.map(_.asMethod).find(_.isPrimaryConstructor).get
     }
-
   lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
+
+  lazy val fieldSymbols = ru.typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
+
+  private def updateField(item: A, name: String, value: Any): A = {
+    val instanceMirror = runtimeMirror.reflect(item)
+
+    val fieldValues = fieldSymbols.map(f =>
+      if (f.name.decoded == name) {
+          value
+        } else {
+          instanceMirror.reflectField(f).get
+      }).toSeq.reverse
+
+    constructorMirror(fieldValues:_*).asInstanceOf[A]
+  }
 
   def list(implicit s: Session): List[A] = {
     query.list
@@ -70,17 +84,7 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
   def findByPK(id: Long)(implicit s: Session): Option[A] = findById(id)
 
   def update(id: Long, item: A)(implicit s: Session, ct: scala.reflect.ClassTag[A]) = {
-    val instanceMirror = runtimeMirror.reflect(item)
-
-    lazy val fields = ru.typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
-    val fieldValues = fields.map(f =>
-      if (f.name.decoded == "id") {
-          Some(id)
-        } else {
-          instanceMirror.reflectField(f).get
-      }).toSeq.reverse
-
-    val newItem = constructorMirror(fieldValues:_*).asInstanceOf[A]
+    val newItem = updateField(item, "id", Some(id))
 
     query.where(_.id === id).update(newItem)
   }
