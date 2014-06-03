@@ -17,6 +17,20 @@ private[doa] object Duck {
 abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Table] {
   protected val query: TableQuery[B]
 
+  lazy val runtimeMirror = ru.typeTag[A].mirror
+  lazy val classMirror = runtimeMirror.reflectClass(ru.typeOf[A].typeSymbol.asClass)
+
+  lazy val constructorSymbol = ru.typeOf[A].declaration(ru.nme.CONSTRUCTOR)
+  lazy val defaultConstructor =
+    if (constructorSymbol.isMethod) {
+      constructorSymbol.asMethod
+    } else {
+      val ctors = constructorSymbol.asTerm.alternatives
+      ctors.map { _.asMethod }.find { _.isPrimaryConstructor }.get
+    }
+
+  lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
+
   def list(implicit s: Session): List[A] = {
     query.list
   }
@@ -30,19 +44,6 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
   }
 
   def create(args: Any*)(implicit s: Session) {
-    lazy val runtimeMirror = ru.typeTag[A].mirror
-    lazy val classMirror = runtimeMirror.reflectClass(ru.typeOf[A].typeSymbol.asClass)
-
-    lazy val constructorSymbol = ru.typeOf[A].declaration(ru.nme.CONSTRUCTOR)
-    lazy val defaultConstructor =
-      if (constructorSymbol.isMethod) {
-        constructorSymbol.asMethod
-      } else {
-        val ctors = constructorSymbol.asTerm.alternatives
-        ctors.map { _.asMethod }.find { _.isPrimaryConstructor }.get
-      }
-
-    lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
     val instance = constructorMirror(args:_*).asInstanceOf[A]
 
     query.insert(instance)
@@ -66,11 +67,7 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
   def findByPK(id: Long)(implicit s: Session): Option[A] = findById(id)
 
   def update(id: Long, item: A)(implicit s: Session, ct: scala.reflect.ClassTag[A]) = {
-    lazy val runtimeMirror = ru.typeTag[A].mirror
     val instanceMirror = runtimeMirror.reflect(item)
-
-    lazy val method = ru.typeOf[A].member(ru.newTermName("copy")).asMethod
-    val methodMirror = instanceMirror.reflectMethod(method)
 
     lazy val fields = ru.typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
     val fieldValues = fields.map(f =>
@@ -80,7 +77,7 @@ abstract class DOA[A <: Duck.Model[A] : ru.TypeTag, B <: Table[A] with Duck.Tabl
           instanceMirror.reflectField(f).get
       }).toSeq.reverse
 
-    val newItem = methodMirror(fieldValues:_*).asInstanceOf[A]
+    val newItem = constructorMirror(fieldValues:_*).asInstanceOf[A]
 
     query.where(_.id === id).update(newItem)
   }
