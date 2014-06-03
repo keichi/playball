@@ -4,13 +4,17 @@ import scala.reflect.runtime.{universe => ru}
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 
-private[doa] object Duck {  
+// ダックタイピング用のstructural typeをまとめたクラス
+private[doa] object Duck {
+  // モデルクラスが実装すべきメソッド・フィールド
   type Model[A] = {
     val id: Option[Long]
     val updatedAt: DateTime
     val createdAt: DateTime
     def productIterator: Iterator[Any]
   }
+
+  // テーブル定義クラスが実装すべきメソッド・フィールド
   type Table = {
     def id: Column[Long]
   }
