@@ -47,7 +47,7 @@ case class BeerBrand(
 )
 
 // case classをmappingするTable[A]を定義する
-class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "BEER") {
+class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "beer") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name", O.NotNull)
   def country = column[String]("country")

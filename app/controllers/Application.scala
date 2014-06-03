@@ -5,10 +5,6 @@ import play.api.mvc._
 import play.api.db.slick._
 import scala.reflect.runtime.{universe => ru}
 
-import play.api.data._
-import play.api.data.Forms._
-import play.api.data.format.Formats._
-
 import play.boy.annotation._
 import play.boy.mapping._
 
