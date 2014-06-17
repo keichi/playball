@@ -6,6 +6,7 @@ import scala.slick.lifted.Tag
 import org.joda.time.DateTime
 import com.github.tototoshi.slick.H2JodaSupport._
 
+import play.api.libs.json._
 import play.boy.doa._
 import play.boy.annotation._
 import play.boy.mapping._
@@ -46,6 +47,10 @@ case class BeerBrand(
   updatedAt: DateTime = new DateTime
 )
 
+object BeerBrand {
+  implicit val format = Json.format[BeerBrand]
+}
+
 // case classをmappingするTable[A]を定義する
 class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "beer") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
@@ -57,7 +62,7 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "beer") {
   def comment = column[String]("comment")
   def createdAt = column[DateTime]("created_at")
   def updatedAt = column[DateTime]("updated_at")
-  def * = (id.?, name, country, style, tasty, strength, comment, createdAt, updatedAt) <> (BeerBrand.tupled, BeerBrand.unapply _)
+  def * = (id.?, name, country, style, tasty, strength, comment, createdAt, updatedAt) <> ((BeerBrand.apply _).tupled, BeerBrand.unapply _)
 }
 
 object BeerBrands extends DOA[BeerBrand, BeerBrands] {
