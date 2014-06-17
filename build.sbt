@@ -1,4 +1,4 @@
-name := "hello"
+name := "playboy"
 
 version := "1.0-SNAPSHOT"
 
