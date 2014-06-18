@@ -1,4 +1,5 @@
 import play.api._
+import play.api.mvc.{Handler, RequestHeader}
 import play.api.Play.current
 import play.api.db.slick._
 
@@ -22,6 +23,12 @@ object Global extends GlobalSettings {
         }
       }
     }
+  }
+
+  override def onRouteRequest(request: RequestHeader): Option[Handler] = {
+    lazy val regex = """/api/""".r
+
+    super.onRouteRequest(request)
   }
 
 }
