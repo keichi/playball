@@ -7,7 +7,7 @@ import org.joda.time.DateTime
 import com.github.tototoshi.slick.H2JodaSupport._
 
 import play.api.libs.json._
-import play.boy.doa._
+import play.boy.dao._
 import play.boy.annotation._
 import play.boy.mapping._
 
@@ -65,6 +65,6 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "beer") {
   def * = (id.?, name, country, style, tasty, strength, comment, createdAt, updatedAt) <> ((BeerBrand.apply _).tupled, BeerBrand.unapply _)
 }
 
-object BeerBrands extends DOA[BeerBrand, BeerBrands] {
+object BeerBrands extends DAO[BeerBrand, BeerBrands] {
   val query = TableQuery[BeerBrands]
 }

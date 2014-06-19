@@ -1,11 +1,11 @@
-package play.boy.doa
+package play.boy.dao
 
 import scala.reflect.runtime.{universe => ru}
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 
 // ダックタイピング用のstructural typeをまとめたクラス
-private[doa] object Duck {
+private[dao] object Duck {
   // モデルクラスが実装すべきメソッド・フィールド
   type Model[A] = {
     val id: Option[Long]
@@ -21,7 +21,7 @@ private[doa] object Duck {
 }
 
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
-abstract class DOA[A <: Duck.Model[A] : ru.TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
+abstract class DAO[A <: Duck.Model[A] : ru.TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   protected val query: TableQuery[B]
 
   lazy val runtimeMirror = ru.typeTag[A].mirror
