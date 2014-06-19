@@ -1,4 +1,4 @@
-name := "playboy"
+name := "playboy-app"
 
 version := "1.0-SNAPSHOT"
 
@@ -14,3 +14,9 @@ libraryDependencies ++= Seq(
 )     
 
 play.Project.playScalaSettings
+
+lazy val app = project.in(file("."))
+    .aggregate(macros)
+    .dependsOn(macros)
+
+lazy val macros = project
