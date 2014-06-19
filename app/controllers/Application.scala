@@ -3,7 +3,7 @@ package controllers
 import play.api._
 import play.api.mvc._
 import play.api.db.slick._
-import scala.reflect.runtime.{universe => ru}
+import scala.reflect.runtime.universe._
 
 import play.boy.annotation._
 import play.boy.mapping._
@@ -35,7 +35,7 @@ object Application extends Controller {
   }
 
   def showForm = Action {
-    val ctor = ru.typeOf[BeerBrand].declarations
+    val ctor = typeOf[BeerBrand].declarations
             .filter(_.isMethod)
             .map(_.asMethod)
             .find(_.isConstructor)
@@ -43,42 +43,42 @@ object Application extends Controller {
 
     val cols = ctor.asMethod.paramss.head
             .filter(_.isTerm)
-            .filter(!_.annotations.exists(_.tpe <:< ru.typeOf[ignore]))
+            .filter(!_.annotations.exists(_.tpe <:< typeOf[ignore]))
             .map({ m => 
               val name = m.name.toString
               val label = m.annotations
-                .find(_.tpe <:< ru.typeOf[label])
+                .find(_.tpe <:< typeOf[label])
                 .flatMap(_.scalaArgs.head match {
-                  case ru.Literal(ru.Constant(s)) => Some(s.asInstanceOf[String])
+                  case Literal(Constant(s)) => Some(s.asInstanceOf[String])
                   case _ => None
                 })
               
               val colType = m.typeSignature
-              val preType = colType.asInstanceOf[ru.TypeRefApi].pre
+              val preType = colType.asInstanceOf[TypeRefApi].pre
 
-              if (colType <:< ru.typeOf[String]) {
+              if (colType <:< typeOf[String]) {
                 val rows = m.annotations
-                  .find(_.tpe <:< ru.typeOf[text])
+                  .find(_.tpe <:< typeOf[text])
                   .flatMap(_.scalaArgs.head match {
-                    case ru.Literal(ru.Constant(s)) => Some(s.asInstanceOf[Int])
+                    case Literal(Constant(s)) => Some(s.asInstanceOf[Int])
                     case _ => None
                   })
 
                 StringColumn(name, label, rows)
-              } else if (colType =:= ru.typeOf[Boolean]) {
+              } else if (colType =:= typeOf[Boolean]) {
                 BooleanColumn(name, label)
-              } else if (colType =:= ru.typeOf[Short]) {
+              } else if (colType =:= typeOf[Short]) {
                 ShortColumn(name, label)
-              } else if (colType =:= ru.typeOf[Int]) {
+              } else if (colType =:= typeOf[Int]) {
                 IntColumn(name, label)
-              } else if (colType =:= ru.typeOf[Long]) {
+              } else if (colType =:= typeOf[Long]) {
                 LongColumn(name, label)
-              } else if (colType =:= ru.typeOf[Double]) {
+              } else if (colType =:= typeOf[Double]) {
                 DoubleColumn(name, label)
-              } else if (colType =:= ru.typeOf[Float]) {
+              } else if (colType =:= typeOf[Float]) {
                 FloatColumn(name, label)
-              } else if (colType.asInstanceOf[ru.TypeRefApi].pre <:< ru.typeOf[Enum]) {
-                val runtimeMirror = ru.typeTag[preType.type].mirror 
+              } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
+                val runtimeMirror = typeTag[preType.type].mirror 
                 val moduleMirror = runtimeMirror.reflectModule(preType.termSymbol.asModule)
                 val obj = moduleMirror.instance
                 

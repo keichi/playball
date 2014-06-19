@@ -1,6 +1,6 @@
 package play.boy.dao
 
-import scala.reflect.runtime.{universe => ru}
+import scala.reflect.runtime.universe._
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 
@@ -21,13 +21,13 @@ private[dao] object Duck {
 }
 
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
-abstract class DAO[A <: Duck.Model[A] : ru.TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
+abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   protected val query: TableQuery[B]
 
-  lazy val runtimeMirror = ru.typeTag[A].mirror
-  lazy val classMirror = runtimeMirror.reflectClass(ru.typeOf[A].typeSymbol.asClass)
+  lazy val runtimeMirror = typeTag[A].mirror
+  lazy val classMirror = runtimeMirror.reflectClass(typeOf[A].typeSymbol.asClass)
 
-  lazy val constructorSymbol = ru.typeOf[A].declaration(ru.nme.CONSTRUCTOR)
+  lazy val constructorSymbol = typeOf[A].declaration(nme.CONSTRUCTOR)
   lazy val defaultConstructor =
     if (constructorSymbol.isMethod) {
       constructorSymbol.asMethod
@@ -37,7 +37,7 @@ abstract class DAO[A <: Duck.Model[A] : ru.TypeTag : scala.reflect.ClassTag, B <
     }
   lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
 
-  lazy val fieldSymbols = ru.typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
+  lazy val fieldSymbols = typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
 
   private def updateField(item: A, kvs: Map[String, Any]): A = {
     val instanceMirror = runtimeMirror.reflect(item)
