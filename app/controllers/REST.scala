@@ -7,13 +7,18 @@ import views._
 
 object Application extends Controller {
   def index = DBAction { implicit s =>
+    Ok("")
   }
   def create = DBAction { implicit s =>
+    Ok("")
   }
   def get(id: Long) = DBAction { implicit s =>
+    Ok("")
   }
   def update(id: Long) = DBAction { implicit s =>
+    Ok("")
   }
   def delete(id: Long) = DBAction { implicit s =>
+    Ok("")
   }
 }
