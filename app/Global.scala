@@ -47,10 +47,10 @@ object Global extends GlobalSettings {
       val dao = currentMirror.reflectModule(moduleSymbol).instance.asInstanceOf[DAO[_, _]]
 
       request.method match {
-        case "GET" if id == null => Some(controllers.REST.index(dao))
-        case "GET" => Some(controllers.REST.get(dao, id.toLong))
-        case "POST" => Some(controllers.REST.create(dao))
-        case "DELETE" => Some(controllers.REST.delete(dao, id.toLong))
+        case "GET" if id == null => Some(controllers.REST.index(model))
+        case "GET" => Some(controllers.REST.get(model, id.toLong))
+        case "POST" => Some(controllers.REST.create(model))
+        case "DELETE" => Some(controllers.REST.delete(model, id.toLong))
         case _ => super.onRouteRequest(request)
       }
     } else {

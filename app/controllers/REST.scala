@@ -8,21 +8,25 @@ import play.api.libs.json.Json
 import models._
 import views._
 import play.boy.dao._
+import play.boy.macros.Macros
 
 object REST extends Controller {
-  def index(dao: DAO[_, _]) = DBAction { implicit s =>
-    Ok(Json.toJson(dao.list.asInstanceOf[List[BeerBrand]]))
+  def index(model: String) = DBAction { implicit s =>
+    model match {
+      case "beerbrand" => Ok(Json.toJson(BeerBrands.list))
+      case "beerbrand2" => Ok(Json.toJson(BeerBrands2.list))
+    }
   }
-  def create(dao: DAO[_, _]) = DBAction { implicit s =>
+  def create(model: String) = DBAction { implicit s =>
     Ok("")
   }
-  def get(dao: DAO[_, _], id: Long) = DBAction { implicit s =>
-    Ok(Json.toJson(dao.findById(id).asInstanceOf[Option[BeerBrand]]))
-  }
-  def update(dao: DAO[_, _], id: Long) = DBAction { implicit s =>
+  def get(model: String, id: Long) = DBAction { implicit s =>
     Ok("")
   }
-  def delete(dao: DAO[_, _], id: Long) = DBAction { implicit s =>
+  def update(model: String, id: Long) = DBAction { implicit s =>
+    Ok("")
+  }
+  def delete(model: String, id: Long) = DBAction { implicit s =>
     Ok("")
   }
 }
