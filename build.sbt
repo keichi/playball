@@ -16,6 +16,10 @@ libraryDependencies ++= Seq(
 play.Project.playScalaSettings
 
 lazy val app = project.in(file("."))
+    .aggregate(libs, macros)
+    .dependsOn(libs, macros)
+
+lazy val libs = project
     .aggregate(macros)
     .dependsOn(macros)
 
