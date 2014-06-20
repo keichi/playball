@@ -17,7 +17,7 @@ abstract class Enum extends Enumeration {
   }
   implicit val reads = new Reads[Value] {
     def reads(js: JsValue): JsResult[Value] = {
-      JsSuccess(Value(js.as[Int]))
+      JsSuccess(apply(js.as[Int]))
     }
   }
   implicit val format = Format(reads, writes)

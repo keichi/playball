@@ -5,7 +5,7 @@ import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 
 // ダックタイピング用のstructural typeをまとめたクラス
-private[dao] object Duck {
+object Duck {
   // モデルクラスが実装すべきメソッド・フィールド
   type Model[A] = {
     val id: Option[Long]
@@ -62,6 +62,10 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
 
   def insert(item: A)(implicit s: Session): Long = {
     (query returning query.map(_.id)) += item
+  }
+
+  def insertTypeUnsafe(item: Any)(implicit s: Session): Long = {
+    (query returning query.map(_.id)) += item.asInstanceOf[A]
   }
 
   def create(args: Any*)(implicit s: Session): Long = {

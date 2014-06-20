@@ -38,6 +38,7 @@ object Global extends GlobalSettings {
         case "GET" if id == null => Some(controllers.REST.index(model))
         case "GET" => Some(controllers.REST.get(model, id.toLong))
         case "POST" => Some(controllers.REST.create(model))
+        case "PUT" if id  != null => Some(controllers.REST.update(model, id.toLong))
         case "DELETE" => Some(controllers.REST.delete(model, id.toLong))
         case _ => super.onRouteRequest(request)
       }

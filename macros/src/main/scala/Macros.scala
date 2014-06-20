@@ -165,4 +165,55 @@ object Macros {
 
     c.Expr(funcExpr)
   }
+
+  def handleCreate: ((String, JsValue) => Any) = macro handleCreateImpl
+
+  def handleCreateImpl(c: Context): c.Expr[(String, JsValue) => Any] = {
+    import c.universe._
+    import c.universe.Flag._
+
+    val cases = c.mirror.staticPackage("models").typeSignature.members
+      .filter(_.isModule)
+      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+      .map(moduleSymbol => {
+        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+        val TypeRef(_, _, List(modelType, tableType)) = baseType
+
+        val modelSymbol = modelType.typeSymbol.companionSymbol
+        val readsSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
+        val jsonPkgSymbol = Select(Select(Select(Ident(newTermName("play")), newTermName("api")), newTermName("libs")), newTermName("json"))
+        val jsonSymbol = Select(jsonPkgSymbol, newTermName("Json"))
+
+        CaseDef(Literal(Constant(modelSymbol.name.decoded.toLowerCase)), EmptyTree,
+          Apply(
+            Apply(
+              Select(jsonSymbol, newTermName("fromJson")),
+              List(
+                Ident(newTermName("y"))
+              )
+            ),
+            List(
+              Select(
+                Ident(modelSymbol),
+                newTermName(readsSymbol.name.toString.trim)
+              )
+            )
+          )
+        )
+      })
+
+    val funcExpr = Function(
+      List(
+        ValDef(Modifiers(PARAM), newTermName("x"), TypeTree(), EmptyTree),
+        ValDef(Modifiers(PARAM), newTermName("y"), TypeTree(), EmptyTree)
+      ),
+      Match(
+        Ident(newTermName("x")),
+        cases.toList
+      )
+    )
+
+    println(funcExpr)
+    c.Expr(funcExpr)
+  }
 }
