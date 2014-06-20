@@ -61,8 +61,6 @@ object Macros {
         )
       })
 
-    val stringSymbol = Select(Select(Ident(newTermName("scala")), newTermName("Predef")), newTermName("String"))
-
     val funcExpr = Function(
       List(
         ValDef(Modifiers(PARAM), newTermName("x"), TypeTree(), EmptyTree),
@@ -74,7 +72,7 @@ object Macros {
       )
     )
 
-    c.Expr[(String, Array[_]) => JsValue](funcExpr)
+    c.Expr(funcExpr)
   }
 
   def handleGet: ((String, Any) => JsValue) = macro handleGetImpl
@@ -116,8 +114,6 @@ object Macros {
         )
       })
 
-    val stringSymbol = Select(Select(Ident(newTermName("scala")), newTermName("Predef")), newTermName("String"))
-
     val funcExpr = Function(
       List(
         ValDef(Modifiers(PARAM), newTermName("x"), TypeTree(), EmptyTree),
@@ -129,7 +125,7 @@ object Macros {
       )
     )
 
-    c.Expr[(String, Any) => JsValue](funcExpr)
+    c.Expr(funcExpr)
   }
 
   def modelMapper: (String => Option[DAO[_, _]]) = macro modelMapperImpl
@@ -167,6 +163,6 @@ object Macros {
       )
     )
 
-    c.Expr[String => Option[DAO[_, _]]](funcExpr)
+    c.Expr(funcExpr)
   }
 }
