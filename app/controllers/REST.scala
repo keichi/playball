@@ -12,16 +12,19 @@ import play.boy.macros.Macros
 
 object REST extends Controller {
   def index(model: String) = DBAction { implicit s =>
-    model match {
-      case "beerbrand" => Ok(Json.toJson(BeerBrands.list))
-      case "beerbrand2" => Ok(Json.toJson(BeerBrands2.list))
-    }
+    val f = Macros.handleIndex
+    val x = BeerBrands.list.toArray
+
+    Ok(f("beerbrand", x))
   }
   def create(model: String) = DBAction { implicit s =>
     Ok("")
   }
   def get(model: String, id: Long) = DBAction { implicit s =>
-    Ok("")
+    val f = Macros.handleGet
+    val x = BeerBrands.findById(id).get
+    
+    Ok(f("beerbrand", x))
   }
   def update(model: String, id: Long) = DBAction { implicit s =>
     Ok("")

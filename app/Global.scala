@@ -34,18 +34,6 @@ object Global extends GlobalSettings {
       lazy val regex = """/api/([^/]+)(/(\d+))?/?""".r
       val regex(model, _, id) = request.path
 
-      val moduleSymbol = currentMirror.staticPackage("models").typeSignature.members
-        .filter(_.isModule)
-        .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
-        .find(moduleSymbol => {
-          val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
-          val TypeRef(_, _, List(modelType, tableType)) = baseType
-
-          modelType.typeSymbol.name.decoded.toLowerCase == model
-        }).get.asModule
-
-      val dao = currentMirror.reflectModule(moduleSymbol).instance.asInstanceOf[DAO[_, _]]
-
       request.method match {
         case "GET" if id == null => Some(controllers.REST.index(model))
         case "GET" => Some(controllers.REST.get(model, id.toLong))

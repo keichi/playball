@@ -20,7 +20,7 @@ lazy val app = project.in(file("."))
     .dependsOn(libs, macros)
 
 lazy val libs = project
-    .aggregate(macros)
-    .dependsOn(macros)
 
 lazy val macros = project
+    .aggregate(libs)
+    .dependsOn(libs)
