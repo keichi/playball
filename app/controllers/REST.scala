@@ -11,20 +11,22 @@ import play.boy.dao._
 import play.boy.macros.Macros
 
 object REST extends Controller {
-  def index(model: String) = DBAction { implicit s =>
-    val f = Macros.handleIndex
-    val x = BeerBrands.list.toArray
+  val modelMapper = Macros.modelMapper
+  val handleIndex = Macros.handleIndex
+  val handleGet = Macros.handleGet
 
-    Ok(f("beerbrand", x))
+  def index(model: String) = DBAction { implicit s =>
+    val x = modelMapper(model).get.list.toArray
+
+    Ok(handleIndex(model, x))
   }
   def create(model: String) = DBAction { implicit s =>
     Ok("")
   }
   def get(model: String, id: Long) = DBAction { implicit s =>
-    val f = Macros.handleGet
-    val x = BeerBrands.findById(id).get
+    val x = modelMapper(model).get.findById(id).get
     
-    Ok(f("beerbrand", x))
+    Ok(handleGet(model, x))
   }
   def update(model: String, id: Long) = DBAction { implicit s =>
     Ok("")

@@ -8,9 +8,9 @@ import play.api.libs.json._
 import play.boy.dao._
 
 object Macros {
-  def handleIndex: ((String, Any) => JsValue) = macro handleIndexImpl
+  def handleIndex: ((String, Array[_]) => JsValue) = macro handleIndexImpl
 
-  def handleIndexImpl(c: Context): c.Expr[(String, Any) => JsValue] = {
+  def handleIndexImpl(c: Context): c.Expr[(String, Array[_]) => JsValue] = {
     import c.universe._
     import c.universe.Flag._
 
@@ -32,9 +32,19 @@ object Macros {
             Apply(
               Select(jsonSymbol, newTermName("toJson")),
               List(
-                TypeApply(
-                  Select(Ident(newTermName("y")), newTermName("asInstanceOf")),
-                  List(AppliedTypeTree(Ident(newTypeName("Array")), List(TypeTree(modelType))))
+                Apply(
+                  Select(Ident(newTermName("y")), newTermName("map")),
+                  List(
+                    Function(
+                      List(
+                        ValDef(Modifiers(PARAM), newTermName("z"), TypeTree(), EmptyTree)
+                      ),
+                      TypeApply(
+                        Select(Ident(newTermName("z")), newTermName("asInstanceOf")),
+                        List(TypeTree(modelType))
+                      )
+                    )
+                  )
                 )
               )
             ),
@@ -64,8 +74,7 @@ object Macros {
       )
     )
 
-    println(c.Expr[(String, Any) => JsValue](funcExpr))
-    c.Expr[(String, Any) => JsValue](funcExpr)
+    c.Expr[(String, Array[_]) => JsValue](funcExpr)
   }
 
   def handleGet: ((String, Any) => JsValue) = macro handleGetImpl
@@ -120,7 +129,44 @@ object Macros {
       )
     )
 
-    println(c.Expr[(String, Any) => JsValue](funcExpr))
     c.Expr[(String, Any) => JsValue](funcExpr)
+  }
+
+  def modelMapper: (String => Option[DAO[_, _]]) = macro modelMapperImpl
+
+  def modelMapperImpl(c: Context): c.Expr[String => Option[DAO[_, _]]] = {
+    import c.universe._
+    import c.universe.Flag._
+
+    val cases = c.mirror.staticPackage("models").typeSignature.members
+      .filter(_.isModule)
+      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+      .map(moduleSymbol => {
+        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+        val TypeRef(_, _, List(modelType, tableType)) = baseType
+
+        val modelSymbol = modelType.typeSymbol.companionSymbol
+        CaseDef(
+          Literal(Constant(modelSymbol.name.decoded.toLowerCase)),
+          EmptyTree,
+          Apply(Ident(newTermName("Some")), List(Ident(moduleSymbol)))
+        )
+      }).toList :+ CaseDef(
+          Ident(nme.WILDCARD),
+          EmptyTree,
+          Ident(newTermName("None"))
+        )
+
+    val funcExpr = Function(
+      List(
+        ValDef(Modifiers(PARAM), newTermName("x"), TypeTree(), EmptyTree)
+      ),
+      Match(
+        Ident(newTermName("x")),
+        cases
+      )
+    )
+
+    c.Expr[String => Option[DAO[_, _]]](funcExpr)
   }
 }
