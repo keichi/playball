@@ -32,7 +32,7 @@ object REST extends Controller {
         val id = dao.insertTypeUnsafe(item)
         Ok(Json.toJson(Map("message" -> s"$model with id:$id created.")))
       }).getOrElse(
-        BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
+        BadRequest(Json.toJson(Map("message" -> s"Request JSON is malformed.")))
       )
     }).getOrElse(
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
