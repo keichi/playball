@@ -51,8 +51,21 @@ object REST extends Controller {
     )
   }
 
-  def update(model: String, id: Long) = DBAction { implicit rs =>
-    Ok("")
+  def update(model: String, id: Long) = DBAction(parse.json) { implicit rs =>
+    modelMapper(model).map({ dao =>
+      dao.findById(id).map({ oldItem =>
+        handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
+          dao.updateTypeUnsafe(id, item)
+          Ok(Json.toJson(Map("message" -> s"$model with id:$id updated.")))
+        }).getOrElse(
+          BadRequest(Json.toJson(Map("message" -> s"Request JSON is malformed.")))
+        )
+      }).getOrElse(
+        NotFound(Json.toJson(Map("message" -> s"$model with id:$id not found.")))
+      )
+    }).getOrElse(
+      BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
+    )
   }
 
   def delete(model: String, id: Long) = DBAction { implicit rs =>

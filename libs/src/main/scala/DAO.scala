@@ -65,7 +65,7 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
   }
 
   def insertTypeUnsafe(item: Any)(implicit s: Session): Long = {
-    (query returning query.map(_.id)) += item.asInstanceOf[A]
+    insert(item.asInstanceOf[A])
   }
 
   def create(args: Any*)(implicit s: Session): Long = {
@@ -95,6 +95,10 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
     val newItem = updateField(item, Map("id" -> Some(id), "updatedAt" -> new DateTime))
 
     query.where(_.id === id).update(newItem)
+  }
+
+  def updateTypeUnsafe(id: Long, item: Any)(implicit s: Session) = {
+    update(id, item.asInstanceOf[A])
   }
 
   def delete(id: Long)(implicit s: Session) {
