@@ -19,28 +19,32 @@ object REST extends Controller {
   val handleCreate = Macros.handleCreate
 
   def index(model: String) = DBAction { implicit rs =>
-    modelMapper(model) match {
-      case Some(dao) => Ok(handleIndex(model, dao.list.toArray))
-      case None => NotFound(s"Model $model not found.")
-    }
+    modelMapper(model).map({ dao =>
+      Ok(handleIndex(model, dao.list.toArray))
+    }).getOrElse(
+      BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
+    )
   }
 
   def create(model: String) = DBAction(parse.json) { implicit rs =>
-    val item = handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]].get
-
-    modelMapper(model).get.insertTypeUnsafe(item)
-
-    Ok("")
+    handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
+      modelMapper(model).get.insertTypeUnsafe(item)
+      Ok("")
+    }).getOrElse(
+      BadRequest(Json.toJson(Map("message" -> s"JSON request malformed.")))
+    )
   }
 
   def get(model: String, id: Long) = DBAction { implicit rs =>
-    modelMapper(model) match {
-      case Some(dao) => dao.findById(id) match {
-        case Some(item) => Ok(handleGet(model, item))
-        case None => NotFound(s"$model with id:$id not found.")
-      }
-      case None => NotFound(s"Model $model not found.")
-    }
+    modelMapper(model).map({ dao =>
+      dao.findById(id).map({ item =>
+        Ok(handleGet(model, item))
+      }).getOrElse(
+        NotFound(Json.toJson(Map("message" -> s"$model with id:$id not found.")))
+      )
+    }).getOrElse(
+      BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
+    )
   }
 
   def update(model: String, id: Long) = DBAction { implicit rs =>
