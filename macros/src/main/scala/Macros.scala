@@ -213,7 +213,6 @@ object Macros {
       )
     )
 
-    println(funcExpr)
     c.Expr(funcExpr)
   }
 }
