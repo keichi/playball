@@ -27,11 +27,15 @@ object REST extends Controller {
   }
 
   def create(model: String) = DBAction(parse.json) { implicit rs =>
-    handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
-      modelMapper(model).get.insertTypeUnsafe(item)
-      Ok("")
+    modelMapper(model).map({dao =>
+      handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
+        val id = dao.insertTypeUnsafe(item)
+        Ok(Json.toJson(Map("message" -> s"$model with id:$id created.")))
+      }).getOrElse(
+        BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
+      )
     }).getOrElse(
-      BadRequest(Json.toJson(Map("message" -> s"JSON request malformed.")))
+      BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
     )
   }
 
@@ -52,6 +56,11 @@ object REST extends Controller {
   }
 
   def delete(model: String, id: Long) = DBAction { implicit rs =>
-    Ok("")
+    modelMapper(model).map({ dao =>
+      dao.delete(id)
+      Ok(Json.toJson(Map("message" -> s"$model with id:$id deleted.")))
+    }).getOrElse(
+      BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
+    )
   }
 }
