@@ -20,6 +20,10 @@ lazy val app = project.in(file("."))
     .dependsOn(libs, macros)
 
 lazy val libs = project
+    .aggregate(macroUtils)
+    .dependsOn(macroUtils)
+
+lazy val macroUtils = project
 
 lazy val macros = project
     .aggregate(libs)
