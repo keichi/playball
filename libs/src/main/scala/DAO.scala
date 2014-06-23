@@ -43,10 +43,7 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
     val instanceMirror = runtimeMirror.reflect(item)
 
     val fieldValues = fieldSymbols.map(f =>
-        kvs.get(f.name.decoded) match {
-          case Some(value) => value
-          case None => instanceMirror.reflectField(f).get
-        }
+        kvs.get(f.name.decoded).getOrElse(instanceMirror.reflectField(f).get)
       ).toSeq.reverse
 
     constructorMirror(fieldValues:_*).asInstanceOf[A]
@@ -62,6 +59,10 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
 
   def insert(item: A)(implicit s: Session): Long = {
     (query returning query.map(_.id)) += item
+  }
+
+  def insertAll(items: Iterable[A])(implicit s: Session): Option[Int] = {
+    query ++= items
   }
 
   def insertTypeUnsafe(item: Any)(implicit s: Session): Long = {
