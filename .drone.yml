@@ -1,0 +1,7 @@
+image: keichi/activator
+script:
+  - activator test
+notify:
+  email:
+    recipients:
+      - keichi.t@me.com
