@@ -5,3 +5,5 @@ notify:
   email:
     recipients:
       - keichi.t@me.com
+cache:
+  - ~/.ivy2/cache
