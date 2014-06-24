@@ -76,4 +76,8 @@ object REST extends Controller {
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
     )
   }
+
+  def meta(model: String) = DBAction { implicit rs =>
+    Ok("")
+  }
 }

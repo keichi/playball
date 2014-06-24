@@ -31,17 +31,21 @@ object Global extends GlobalSettings {
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
     if (request.path.startsWith("/api/")) {
-      lazy val regex = """/api/([^/]+)(/(\d+))?/?""".r
+      lazy val regex = """/api/([^/]+)(/([^/]+))?/?""".r
       val regex(model, _, id) = request.path
 
-      request.method match {
-        case "GET" if id == null => Some(controllers.REST.index(model))
-        case "GET" => Some(controllers.REST.get(model, id.toLong))
-        case "POST" => Some(controllers.REST.create(model))
-        case "PUT" if id  != null => Some(controllers.REST.update(model, id.toLong))
-        case "DELETE" => Some(controllers.REST.delete(model, id.toLong))
-        case _ => super.onRouteRequest(request)
-      }
+      if (model == "meta") {
+          Some(controllers.REST.meta(id))
+        } else {
+          request.method match {
+            case "GET" if id == null => Some(controllers.REST.index(model))
+            case "GET" => Some(controllers.REST.get(model, id.toLong))
+            case "POST" => Some(controllers.REST.create(model))
+            case "PUT" if id  != null => Some(controllers.REST.update(model, id.toLong))
+            case "DELETE" => Some(controllers.REST.delete(model, id.toLong))
+            case _ => super.onRouteRequest(request)
+          }
+        }
     } else {
       super.onRouteRequest(request)
     }    
