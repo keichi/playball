@@ -6,6 +6,6 @@ notify:
     recipients:
       - keichi.t@me.com
 cache:
-  - ~/.ivy2/cache
+  - /root/.ivy2/cache
 git:
   depth: 1
