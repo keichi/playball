@@ -57,9 +57,9 @@ object Macros {
     c.Expr(q"(x: String, y: Any) => x match { case ..$cases }")
   }
 
-  def modelMapper: (String => Option[DAO[_, _]]) = macro modelMapperImpl
+  def findDAO: (String => Option[DAO[_, _]]) = macro findDAOImpl
 
-  def modelMapperImpl(c: Context): c.Expr[String => Option[DAO[_, _]]] = {
+  def findDAOImpl(c: Context): c.Expr[String => Option[DAO[_, _]]] = {
     import c.universe._
     import c.universe.Flag._
 

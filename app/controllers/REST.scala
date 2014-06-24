@@ -13,13 +13,13 @@ import play.boy.dao._
 import play.boy.macros.Macros
 
 object REST extends Controller {
-  val modelMapper = Macros.modelMapper
+  val findDAO = Macros.findDAO
   val handleIndex = Macros.handleIndex
   val handleGet = Macros.handleGet
   val handleCreate = Macros.handleCreate
 
   def index(model: String) = DBAction { implicit rs =>
-    modelMapper(model).map({ dao =>
+    findDAO(model).map({ dao =>
       Ok(handleIndex(model, dao.list.toArray))
     }).getOrElse(
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
@@ -27,7 +27,7 @@ object REST extends Controller {
   }
 
   def create(model: String) = DBAction(parse.json) { implicit rs =>
-    modelMapper(model).map({dao =>
+    findDAO(model).map({dao =>
       handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
         val id = dao.insertTypeUnsafe(item)
         Ok(Json.toJson(Map("message" -> s"$model with id:$id created.")))
@@ -40,7 +40,7 @@ object REST extends Controller {
   }
 
   def get(model: String, id: Long) = DBAction { implicit rs =>
-    modelMapper(model).map({ dao =>
+    findDAO(model).map({ dao =>
       dao.findById(id).map({ item =>
         Ok(handleGet(model, item))
       }).getOrElse(
@@ -52,7 +52,7 @@ object REST extends Controller {
   }
 
   def update(model: String, id: Long) = DBAction(parse.json) { implicit rs =>
-    modelMapper(model).map({ dao =>
+    findDAO(model).map({ dao =>
       dao.findById(id).map({ oldItem =>
         handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
           dao.updateTypeUnsafe(id, item)
@@ -69,7 +69,7 @@ object REST extends Controller {
   }
 
   def delete(model: String, id: Long) = DBAction { implicit rs =>
-    modelMapper(model).map({ dao =>
+    findDAO(model).map({ dao =>
       dao.delete(id)
       Ok(Json.toJson(Map("message" -> s"$model with id:$id deleted.")))
     }).getOrElse(
