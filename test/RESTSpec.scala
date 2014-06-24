@@ -13,7 +13,7 @@ import play.api.libs.json._
  * For more information, consult the wiki.
  */
 @RunWith(classOf[JUnitRunner])
-class ApplicationSpec extends Specification with JsonMatchers {
+class RESTSpec extends Specification with JsonMatchers {
   "REST endpoint" should {
 
     "return 400 for an unknown model" in new WithApplication {
