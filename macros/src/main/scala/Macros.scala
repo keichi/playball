@@ -76,7 +76,7 @@ object Macros {
         q"($caseName, $moduleSymbol)"
       }).toList
 
-    c.Expr(q"Map(..$tuples)")
+    c.Expr(q"scala.collection.immutable.Map(..$tuples)")
   }
 
   def handleCreate: ((String, JsValue) => Any) = macro handleCreateImpl
