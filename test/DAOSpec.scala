@@ -20,13 +20,13 @@ class DAOSpec extends Specification {
 
     "list all items" in new WithApplication {
       DB.withSession{ implicit s =>
-        BeerBrands.list.size must equalTo(3)
+        BeerBrands.list.size must equalTo(6)
       }
     }
 
     "return number of items" in new WithApplication {
       DB.withSession{ implicit s =>
-        BeerBrands.count must equalTo(3)
+        BeerBrands.count must equalTo(6)
       }
     }
 

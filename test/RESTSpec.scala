@@ -41,7 +41,7 @@ class RESTSpec extends Specification with JsonMatchers {
 
       val json = Json.parse(contentAsString(result))
       json must beAnInstanceOf[JsArray]
-      json.asInstanceOf[JsArray].value.size must equalTo(3)
+      json.asInstanceOf[JsArray].value.size must equalTo(6)
     }
 
     "return object with specified id" in new WithApplication {
