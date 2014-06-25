@@ -2,7 +2,7 @@ package play.boy.macros
 
 import language.experimental.macros
 import scala.reflect.macros.Context
-import scala.reflect.ClassTag
+import org.joda.time.DateTime
 import play.api.libs.json._
 
 import play.boy.dao._
@@ -129,6 +129,8 @@ object Macros {
               q"play.boy.types.StringColumn($name, $label, $rows)"
             } else if (colType =:= typeOf[Boolean]) {
               q"play.boy.types.BooleanColumn($name, $label)"
+            } else if (colType =:= typeOf[DateTime]) {
+              q"play.boy.types.DateTimeColumn($name, $label)"
             } else if (colType =:= typeOf[Short]) {
               q"play.boy.types.ShortColumn($name, $label)"
             } else if (colType =:= typeOf[Int]) {

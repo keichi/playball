@@ -100,7 +100,7 @@ object REST extends Controller {
             )
           )
         }
-        case DateColumn(name, label) => {
+        case DateTimeColumn(name, label) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("date"),

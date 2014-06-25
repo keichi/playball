@@ -30,7 +30,7 @@ abstract trait ColumnBase {
 
 case class StringColumn(val name: String, val label: Option[String], val rows: Option[Int]) extends ColumnBase
 case class BooleanColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class DateColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class DateTimeColumn(val name: String, val label: Option[String]) extends ColumnBase
 
 case class ShortColumn(val name: String, val label: Option[String]) extends ColumnBase
 case class IntColumn(val name: String, val label: Option[String]) extends ColumnBase
