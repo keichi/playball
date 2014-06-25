@@ -136,14 +136,16 @@ object Macros {
             val preType = colType.asInstanceOf[TypeRefApi].pre
 
             if (colType <:< typeOf[String]) {
-              // val rows = m.annotations
-              //   .find(_.tpe <:< typeOf[text])
-              //   .flatMap(_.scalaArgs.head match {
-              //     case Literal(Constant(s)) => Some(s.asInstanceOf[Int])
-              //     case _ => None
-              //   })
+            val rows = m.annotations
+              .find(_.tpe =:= typeOf[play.boy.annotation.text]) match {
+                case Some(x) => {
+                  val tmp = x.scalaArgs.head
+                  q"Some($tmp)"
+                }
+                case None => q"None"
+              }
 
-              q"StringColumn($name, $label, Some(5))"
+              q"StringColumn($name, $label, $rows)"
             } else if (colType =:= typeOf[Boolean]) {
               q"BooleanColumn($name, $label)"
             } else if (colType =:= typeOf[Short]) {
