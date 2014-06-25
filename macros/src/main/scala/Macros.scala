@@ -6,25 +6,7 @@ import scala.reflect.ClassTag
 import play.api.libs.json._
 
 import play.boy.dao._
-import play.boy.mapping._
-
-abstract trait ColumnBase {
-  val name: String
-  val label: Option[String]
-}
-
-case class StringColumn(val name: String, val label: Option[String], val rows: Option[Int]) extends ColumnBase
-case class BooleanColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class DateColumn(val name: String, val label: Option[String]) extends ColumnBase
-
-case class ShortColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class IntColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class LongColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class DoubleColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class FloatColumn(val name: String, val label: Option[String]) extends ColumnBase
-
-case class OptionColumn(val name: String, val label: Option[String], options: Map[String, Int]) extends ColumnBase
-case class InvalidColumn(val name: String, val label: Option[String]) extends ColumnBase
+import play.boy.types._
 
 object Macros {
   def handleIndex: ((String, Array[_]) => JsValue) = macro handleIndexImpl
@@ -145,19 +127,19 @@ object Macros {
                 case None => q"None"
               }
 
-              q"StringColumn($name, $label, $rows)"
+              q"play.boy.types.StringColumn($name, $label, $rows)"
             } else if (colType =:= typeOf[Boolean]) {
-              q"BooleanColumn($name, $label)"
+              q"play.boy.types.BooleanColumn($name, $label)"
             } else if (colType =:= typeOf[Short]) {
-              q"ShortColumn($name, $label)"
+              q"play.boy.types.ShortColumn($name, $label)"
             } else if (colType =:= typeOf[Int]) {
-              q"IntColumn($name, $label)"
+              q"play.boy.types.IntColumn($name, $label)"
             } else if (colType =:= typeOf[Long]) {
-              q"LongColumn($name, $label)"
+              q"play.boy.types.LongColumn($name, $label)"
             } else if (colType =:= typeOf[Double]) {
-              q"DoubleColumn($name, $label)"
+              q"play.boy.types.DoubleColumn($name, $label)"
             } else if (colType =:= typeOf[Float]) {
-              q"FloatColumn($name, $label)"
+              q"play.boy.types.FloatColumn($name, $label)"
             } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
               val enumSymbol = preType.termSymbol.asModule
               
@@ -170,9 +152,9 @@ object Macros {
                 })
                 .toList
 
-              q"OptionColumn($name, $label, scala.collection.immutable.Map(..$options))"
+              q"play.boy.types.OptionColumn($name, $label, scala.collection.immutable.Map(..$options))"
             } else {
-              q"InvalidColumn($name, $label)"
+              q"play.boy.types.InvalidColumn($name, $label)"
             }
           }).toList
 

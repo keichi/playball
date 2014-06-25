@@ -1,4 +1,4 @@
-@(columns: Seq[play.boy.macros.ColumnBase])
+@(columns: Seq[play.boy.types.ColumnBase])
 
 @main("Model Dump") {
 	<form class="form-horizontal" role="form" action="/test" method="post">
@@ -7,38 +7,38 @@
 		    <label for="@column.name" class="col-sm-2 control-label">@column.label</label>
 		    <div class="col-sm-6">
 	    	@column match {
-	    	case play.boy.macros.StringColumn(_, _, Some(rows)) => {
+	    	case play.boy.types.StringColumn(_, _, Some(rows)) => {
 	    		<textarea class="form-control" name="@column.name" id="@column.name" rows="@rows" placeholder="@column.label"></textarea>
 	    	}
-	    	case play.boy.macros.StringColumn(_, _, None) => {
+	    	case play.boy.types.StringColumn(_, _, None) => {
 	    		<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label">
 	    	}
-	    	case play.boy.macros.BooleanColumn(_, _) => {
+	    	case play.boy.types.BooleanColumn(_, _) => {
 		    	<input type="checkbox" class="form-control" name="@column.name" id="@column.name"></input>
 	    	}
-	    	case play.boy.macros.ShortColumn(_, _) => {
+	    	case play.boy.types.ShortColumn(_, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.macros.IntColumn(_, _) => {
+	    	case play.boy.types.IntColumn(_, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.macros.LongColumn(_, _) => {
+	    	case play.boy.types.LongColumn(_, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.macros.DoubleColumn(_, _) => {
+	    	case play.boy.types.DoubleColumn(_, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.macros.FloatColumn(_, _) => {
+	    	case play.boy.types.FloatColumn(_, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.macros.OptionColumn(_, _, options) => {
+	    	case play.boy.types.OptionColumn(_, _, options) => {
 				<select class="form-control" name="@column.name" id="@column.name">
 				@for((s, _) <- options) {
 					<option>@s</option>
 				}
 				</select>
 	    	}
-	    	case play.boy.macros.DateColumn(_, _) => {
+	    	case play.boy.types.DateColumn(_, _) => {
 				<div class="input-group date-control"  name="@column.name" id="@column.name">
 					<input type="text" class="form-control" />
 					<span class="input-group-addon">
@@ -46,7 +46,7 @@
 					</span>
 				</div>
 	    	}
-	    	case play.boy.macros.InvalidColumn(_, _) => {
+	    	case play.boy.types.InvalidColumn(_, _) => {
 	    	}
 	    	}
 		    </div>

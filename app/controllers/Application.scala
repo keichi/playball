@@ -5,7 +5,6 @@ import play.api.mvc._
 import play.api.db.slick._
 
 import play.boy.macros._
-import play.boy.macros.ColumnBase
 
 import models._
 import views._

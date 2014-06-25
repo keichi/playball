@@ -10,6 +10,7 @@ import models._
 import views._
 import play.boy.dao._
 import play.boy.macros._
+import play.boy.types._
 
 object REST extends Controller {
   val findDAO = Macros.daoMap.get _
