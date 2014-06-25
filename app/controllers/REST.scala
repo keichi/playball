@@ -81,95 +81,105 @@ object REST extends Controller {
   def meta(model: String) = DBAction { implicit rs =>
     findMeta(model).map({ meta =>
       val cols = meta.map(_ match {
-        case StringColumn(name, label, rows) => {
+        case StringColumn(name, label, optional, rows) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("string"),
               "name" -> Json.toJson(name),
               "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional),
               "rows" -> Json.toJson(rows)
             )
           )
         }
-        case BooleanColumn(name, label) => {
+        case BooleanColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("boolean"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }
-        case DateTimeColumn(name, label) => {
+        case DateTimeColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("date"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }
-        case ShortColumn(name, label) => {
+        case ShortColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("short"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }
-        case IntColumn(name, label) => {
+        case IntColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("int"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }
-        case LongColumn(name, label) => {
+        case LongColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("long"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }
-        case DoubleColumn(name, label) => {
+        case DoubleColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("double"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }
-        case FloatColumn(name, label) => {
+        case FloatColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("float"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }
-        case OptionColumn(name, label, options) => {
+        case OptionColumn(name, label, optional, optionals) => {
           Json.toJson(
             Map(
-              "type" -> Json.toJson("option"),
+              "type" -> Json.toJson("optional"),
               "name" -> Json.toJson(name),
               "label" -> Json.toJson(label),
-              "options" -> Json.toJson(options)
+              "optional" -> Json.toJson(optional),
+              "optionals" -> Json.toJson(optionals)
             )
           )
         }
-        case InvalidColumn(name, label) => {
+        case InvalidColumn(name, label, optional) => {
           Json.toJson(
             Map(
               "type" -> Json.toJson("invalid"),
               "name" -> Json.toJson(name),
-              "label" -> Json.toJson(label)
+              "label" -> Json.toJson(label),
+              "optional" -> Json.toJson(optional)
             )
           )
         }

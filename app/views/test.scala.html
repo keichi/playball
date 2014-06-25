@@ -7,38 +7,38 @@
 		    <label for="@column.name" class="col-sm-2 control-label">@column.label</label>
 		    <div class="col-sm-6">
 	    	@column match {
-	    	case play.boy.types.StringColumn(_, _, Some(rows)) => {
+	    	case play.boy.types.StringColumn(_, _, _, Some(rows)) => {
 	    		<textarea class="form-control" name="@column.name" id="@column.name" rows="@rows" placeholder="@column.label"></textarea>
 	    	}
-	    	case play.boy.types.StringColumn(_, _, None) => {
+	    	case play.boy.types.StringColumn(_, _, _, None) => {
 	    		<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label">
 	    	}
-	    	case play.boy.types.BooleanColumn(_, _) => {
+	    	case play.boy.types.BooleanColumn(_, _, _) => {
 		    	<input type="checkbox" class="form-control" name="@column.name" id="@column.name"></input>
 	    	}
-	    	case play.boy.types.ShortColumn(_, _) => {
+	    	case play.boy.types.ShortColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.types.IntColumn(_, _) => {
+	    	case play.boy.types.IntColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.types.LongColumn(_, _) => {
+	    	case play.boy.types.LongColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.types.DoubleColumn(_, _) => {
+	    	case play.boy.types.DoubleColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.types.FloatColumn(_, _) => {
+	    	case play.boy.types.FloatColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.types.OptionColumn(_, _, options) => {
+	    	case play.boy.types.OptionColumn(_, _, _, options) => {
 				<select class="form-control" name="@column.name" id="@column.name">
 				@for((s, _) <- options) {
 					<option>@s</option>
 				}
 				</select>
 	    	}
-	    	case play.boy.types.DateTimeColumn(_, _) => {
+	    	case play.boy.types.DateTimeColumn(_, _, _) => {
 				<div class="input-group date-control"  name="@column.name" id="@column.name">
 					<input type="text" class="form-control" />
 					<span class="input-group-addon">
@@ -46,7 +46,7 @@
 					</span>
 				</div>
 	    	}
-	    	case play.boy.types.InvalidColumn(_, _) => {
+	    	case play.boy.types.InvalidColumn(_, _, _) => {
 	    	}
 	    	}
 		    </div>

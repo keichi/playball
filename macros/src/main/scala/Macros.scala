@@ -82,7 +82,7 @@ object Macros {
 
   def modelMetaMap = macro modelMetaMapImpl
 
-  def modelTmpImpl(c: Context)(originalSymbol: c.universe.Symbol, colType: c.universe.Type, name: String, label: c.universe.Tree, option: Boolean): c.universe.Tree = {
+  def modelTmpImpl(c: Context)(originalSymbol: c.universe.Symbol, colType: c.universe.Type, name: String, label: c.universe.Tree, optional: Boolean): c.universe.Tree = {
     import c.universe._
     import c.universe.Flag._
 
@@ -92,21 +92,21 @@ object Macros {
         .map(x => q"Some(${x.scalaArgs.head})")
         .getOrElse(q"None")
 
-      q"play.boy.types.StringColumn($name, $label, $rows)"
+      q"play.boy.types.StringColumn($name, $label, $optional, $rows)"
     } else if (colType =:= typeOf[Boolean]) {
-      q"play.boy.types.BooleanColumn($name, $label)"
+      q"play.boy.types.BooleanColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[DateTime]) {
-      q"play.boy.types.DateTimeColumn($name, $label)"
+      q"play.boy.types.DateTimeColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Short]) {
-      q"play.boy.types.ShortColumn($name, $label)"
+      q"play.boy.types.ShortColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Int]) {
-      q"play.boy.types.IntColumn($name, $label)"
+      q"play.boy.types.IntColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Long]) {
-      q"play.boy.types.LongColumn($name, $label)"
+      q"play.boy.types.LongColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Double]) {
-      q"play.boy.types.DoubleColumn($name, $label)"
+      q"play.boy.types.DoubleColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Float]) {
-      q"play.boy.types.FloatColumn($name, $label)"
+      q"play.boy.types.FloatColumn($name, $label, $optional)"
     } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
       val preType = colType.asInstanceOf[TypeRefApi].pre
       val enumSymbol = preType.termSymbol.asModule
@@ -120,12 +120,12 @@ object Macros {
         })
         .toList
 
-      q"play.boy.types.OptionColumn($name, $label, scala.collection.immutable.Map(..$options))"
+      q"play.boy.types.OptionColumn($name, $label, $optional, scala.collection.immutable.Map(..$options))"
     } else if (colType <:< typeOf[Option[_]]) {
       val innerType = colType.asInstanceOf[TypeRefApi].args.head
       modelTmpImpl(c)(originalSymbol, innerType, name, label, true)
     } else {
-      q"play.boy.types.InvalidColumn($name, $label)"
+      q"play.boy.types.InvalidColumn($name, $label, $optional)"
     }
   }
 

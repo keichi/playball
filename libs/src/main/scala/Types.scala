@@ -26,17 +26,18 @@ abstract class Enum extends Enumeration {
 abstract trait ColumnBase {
   val name: String
   val label: Option[String]
+  val optional: Boolean
 }
 
-case class StringColumn(val name: String, val label: Option[String], val rows: Option[Int]) extends ColumnBase
-case class BooleanColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class DateTimeColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class StringColumn(val name: String, val label: Option[String], val optional: Boolean, val rows: Option[Int]) extends ColumnBase
+case class BooleanColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
+case class DateTimeColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
 
-case class ShortColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class IntColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class LongColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class DoubleColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class FloatColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class ShortColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
+case class IntColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
+case class LongColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
+case class DoubleColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
+case class FloatColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
 
-case class OptionColumn(val name: String, val label: Option[String], options: Map[String, Int]) extends ColumnBase
-case class InvalidColumn(val name: String, val label: Option[String]) extends ColumnBase
+case class OptionColumn(val name: String, val label: Option[String], val optional: Boolean, options: Map[String, Int]) extends ColumnBase
+case class InvalidColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
