@@ -13,7 +13,7 @@ import play.boy.dao._
 import play.boy.macros.Macros
 
 object REST extends Controller {
-  val findDAO = Macros.findDAO
+  val findDAO = Macros.daoMap.get _
   val handleIndex = Macros.handleIndex
   val handleGet = Macros.handleGet
   val handleCreate = Macros.handleCreate

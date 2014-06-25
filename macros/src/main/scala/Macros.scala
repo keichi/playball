@@ -57,13 +57,13 @@ object Macros {
     c.Expr(q"(x: String, y: Any) => x match { case ..$cases }")
   }
 
-  def findDAO: (String => Option[DAO[_, _]]) = macro findDAOImpl
+  def daoMap = macro daoMapImpl
 
-  def findDAOImpl(c: Context): c.Expr[String => Option[DAO[_, _]]] = {
+  def daoMapImpl(c: Context): c.Expr[Map[String, DAO[_, _]]] = {
     import c.universe._
     import c.universe.Flag._
 
-    val cases = c.mirror.staticPackage("models").typeSignature.members
+    val tuples = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)
       .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
       .map(moduleSymbol => {
@@ -73,10 +73,10 @@ object Macros {
         val modelSymbol = modelType.typeSymbol.companionSymbol
         val caseName = modelSymbol.name.decoded.toLowerCase
 
-        cq"$caseName => Some($moduleSymbol)"
-      }).toList :+ cq"_ => None"
+        q"($caseName, $moduleSymbol)"
+      }).toList
 
-    c.Expr(q"(x: String) => x match { case ..$cases }")
+    c.Expr(q"Map(..$tuples)")
   }
 
   def handleCreate: ((String, JsValue) => Any) = macro handleCreateImpl
