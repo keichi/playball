@@ -4,16 +4,16 @@ import play.api._
 import play.api.mvc._
 import play.api.db.slick._
 import play.api.libs.json.{Json, JsResult}
-import play.api.libs.json.Json._
 import play.api.mvc.BodyParsers._
 
 import models._
 import views._
 import play.boy.dao._
-import play.boy.macros.Macros
+import play.boy.macros._
 
 object REST extends Controller {
   val findDAO = Macros.daoMap.get _
+  val findMeta = Macros.modelMetaMap.get _
   val handleIndex = Macros.handleIndex
   val handleGet = Macros.handleGet
   val handleCreate = Macros.handleCreate
@@ -78,6 +78,105 @@ object REST extends Controller {
   }
 
   def meta(model: String) = DBAction { implicit rs =>
-    Ok("")
+    findMeta(model).map({ meta =>
+      val cols = meta.map(_ match {
+        case StringColumn(name, label, rows) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("string"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label),
+              "rows" -> Json.toJson(rows)
+            )
+          )
+        }
+        case BooleanColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("boolean"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+        case DateColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("date"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+        case ShortColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("short"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+        case IntColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("int"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+        case LongColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("long"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+        case DoubleColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("double"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+        case FloatColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("float"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+        case OptionColumn(name, label, options) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("option"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label),
+              "options" -> Json.toJson(options)
+            )
+          )
+        }
+        case InvalidColumn(name, label) => {
+          Json.toJson(
+            Map(
+              "type" -> Json.toJson("invalid"),
+              "name" -> Json.toJson(name),
+              "label" -> Json.toJson(label)
+            )
+          )
+        }
+      })
+
+      Ok(Json.toJson(cols))
+    }).getOrElse(
+      BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
+    )
   }
 }
