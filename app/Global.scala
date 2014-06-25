@@ -22,7 +22,10 @@ object Global extends GlobalSettings {
           Seq(
             BeerBrand(None, "Zillertal", "Austria", BeerStyle.Weissbier, true, 5.0, ""),
             BeerBrand(None, "Heineken", "Netherlands", BeerStyle.Pilsener, false, 5.0, ""),
-            BeerBrand(None, "Bitburger", "German", BeerStyle.Pilsener, true, 4.6, "")
+            BeerBrand(None, "Bitburger", "German", BeerStyle.Pilsener, true, 4.6, ""),
+            BeerBrand(None, "Alpha", "Greek", BeerStyle.Pilsener, true, 5.0, ""),
+            BeerBrand(None, "Guinness", "Ireland", BeerStyle.Porter, true, 5.0, ""),
+            BeerBrand(None, "Asahi Super Dry", "Japan", BeerStyle.Pilsener, false, 5.6, "")
           ).foreach(BeerBrands.insert)
         }
       }
