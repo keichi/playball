@@ -102,7 +102,6 @@ object Macros {
 
         val cols = ctor.asMethod.paramss.head
           .filter(_.isTerm)
-          .filter(!_.annotations.exists(_.tpe <:< typeOf[play.boy.annotation.ignore]))
           .map({ m => 
             val name = m.name.decoded
             val label = m.annotations

@@ -27,7 +27,6 @@ import BeerStyle2.BeerStyle2
 // case classをTable[A]にmappingして使うことを前提にしているので、
 // まずはcase classを定義する。
 case class BeerBrand2(
-  @ignore
   id: Option[Long],
   @label("名前")
   name: String,
@@ -41,9 +40,7 @@ case class BeerBrand2(
   strength: Double,
   @label("コメント") @text(5)
   comment: String,
-  @ignore
   createdAt: DateTime = new DateTime,
-  @ignore
   updatedAt: DateTime = new DateTime
 )
 
