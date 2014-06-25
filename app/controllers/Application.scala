@@ -3,31 +3,12 @@ package controllers
 import play.api._
 import play.api.mvc._
 import play.api.db.slick._
-import scala.reflect.runtime.universe._
 
-import play.boy.annotation._
-import play.boy.mapping._
+import play.boy.macros._
+import play.boy.macros.ColumnBase
 
 import models._
 import views._
-
-sealed abstract trait ColumnBase {
-  val name: String
-  val label: Option[String]
-}
-
-case class StringColumn(val name: String, val label: Option[String], val rows: Option[Int]) extends ColumnBase
-case class BooleanColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class DateColumn(val name: String, val label: Option[String]) extends ColumnBase
-
-case class ShortColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class IntColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class LongColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class DoubleColumn(val name: String, val label: Option[String]) extends ColumnBase
-case class FloatColumn(val name: String, val label: Option[String]) extends ColumnBase
-
-case class OptionColumn(val name: String, val label: Option[String], options: Map[String, Int]) extends ColumnBase
-case class InvalidColumn(val name: String, val label: Option[String]) extends ColumnBase
 
 object Application extends Controller {
   def index = DBAction { implicit s =>
@@ -35,70 +16,7 @@ object Application extends Controller {
   }
 
   def showForm = Action {
-    val ctor = typeOf[BeerBrand].declarations
-            .filter(_.isMethod)
-            .map(_.asMethod)
-            .find(_.isConstructor)
-            .get
-
-    val cols = ctor.asMethod.paramss.head
-            .filter(_.isTerm)
-            .filter(!_.annotations.exists(_.tpe <:< typeOf[ignore]))
-            .map({ m => 
-              val name = m.name.toString
-              val label = m.annotations
-                .find(_.tpe <:< typeOf[label])
-                .flatMap(_.scalaArgs.head match {
-                  case Literal(Constant(s)) => Some(s.asInstanceOf[String])
-                  case _ => None
-                })
-              
-              val colType = m.typeSignature
-              val preType = colType.asInstanceOf[TypeRefApi].pre
-
-              if (colType <:< typeOf[String]) {
-                val rows = m.annotations
-                  .find(_.tpe <:< typeOf[text])
-                  .flatMap(_.scalaArgs.head match {
-                    case Literal(Constant(s)) => Some(s.asInstanceOf[Int])
-                    case _ => None
-                  })
-
-                StringColumn(name, label, rows)
-              } else if (colType =:= typeOf[Boolean]) {
-                BooleanColumn(name, label)
-              } else if (colType =:= typeOf[Short]) {
-                ShortColumn(name, label)
-              } else if (colType =:= typeOf[Int]) {
-                IntColumn(name, label)
-              } else if (colType =:= typeOf[Long]) {
-                LongColumn(name, label)
-              } else if (colType =:= typeOf[Double]) {
-                DoubleColumn(name, label)
-              } else if (colType =:= typeOf[Float]) {
-                FloatColumn(name, label)
-              } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
-                val runtimeMirror = typeTag[preType.type].mirror 
-                val moduleMirror = runtimeMirror.reflectModule(preType.termSymbol.asModule)
-                val obj = moduleMirror.instance
-                
-                val map = preType.declarations
-                  .filter(_.isTerm)
-                  .filter(_.asTerm.isVal)
-                  .map({t =>
-                    val o = runtimeMirror.reflect(obj).reflectField(t.asTerm).get
-                    val item = o.asInstanceOf[Enumeration#Value]
-                    (item.toString, item.id)
-                  })
-                  .toMap
-
-
-                OptionColumn(name, label, map)
-              } else {
-                InvalidColumn(name, label)
-              }
-            })
-            .toSeq
+    val cols = Macros.modelMetaMap.get("beerbrand").get
 
     Ok(views.html.test(cols))
   }
