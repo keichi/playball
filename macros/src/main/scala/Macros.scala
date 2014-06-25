@@ -82,6 +82,53 @@ object Macros {
 
   def modelMetaMap = macro modelMetaMapImpl
 
+  def modelTmpImpl(c: Context)(originalSymbol: c.universe.Symbol, colType: c.universe.Type, name: String, label: c.universe.Tree, option: Boolean): c.universe.Tree = {
+    import c.universe._
+    import c.universe.Flag._
+
+    if (colType =:= typeOf[String]) {
+      val rows = originalSymbol.annotations
+        .find(_.tpe =:= typeOf[play.boy.annotation.text])
+        .map(x => q"Some(${x.scalaArgs.head})")
+        .getOrElse(q"None")
+
+      q"play.boy.types.StringColumn($name, $label, $rows)"
+    } else if (colType =:= typeOf[Boolean]) {
+      q"play.boy.types.BooleanColumn($name, $label)"
+    } else if (colType =:= typeOf[DateTime]) {
+      q"play.boy.types.DateTimeColumn($name, $label)"
+    } else if (colType =:= typeOf[Short]) {
+      q"play.boy.types.ShortColumn($name, $label)"
+    } else if (colType =:= typeOf[Int]) {
+      q"play.boy.types.IntColumn($name, $label)"
+    } else if (colType =:= typeOf[Long]) {
+      q"play.boy.types.LongColumn($name, $label)"
+    } else if (colType =:= typeOf[Double]) {
+      q"play.boy.types.DoubleColumn($name, $label)"
+    } else if (colType =:= typeOf[Float]) {
+      q"play.boy.types.FloatColumn($name, $label)"
+    } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
+      val preType = colType.asInstanceOf[TypeRefApi].pre
+      val enumSymbol = preType.termSymbol.asModule
+      
+      val options = preType.declarations
+        .filter(_.isTerm)
+        .filter(_.asTerm.isVal)
+        .map({ fieldSymbol =>
+          val itemSymbol = newTermName(fieldSymbol.name.decoded.trim)
+          q"($enumSymbol.$itemSymbol.toString, $enumSymbol.$itemSymbol.id)"
+        })
+        .toList
+
+      q"play.boy.types.OptionColumn($name, $label, scala.collection.immutable.Map(..$options))"
+    } else if (colType <:< typeOf[Option[_]]) {
+      val innerType = colType.asInstanceOf[TypeRefApi].args.head
+      modelTmpImpl(c)(originalSymbol, innerType, name, label, true)
+    } else {
+      q"play.boy.types.InvalidColumn($name, $label)"
+    }
+  }
+
   def modelMetaMapImpl(c: Context): c.Expr[Map[String, List[ColumnBase]]] = {
     import c.universe._
     import c.universe.Flag._
@@ -103,52 +150,13 @@ object Macros {
         val cols = ctor.asMethod.paramss.head
           .filter(_.isTerm)
           .map({ m => 
+            val colType = m.typeSignature
             val name = m.name.decoded
             val label = m.annotations
               .find(_.tpe =:= typeOf[play.boy.annotation.label])
               .map(x => q"Some(${x.scalaArgs.head})")
               .getOrElse(q"None")
-            
-            val colType = m.typeSignature
-            val preType = colType.asInstanceOf[TypeRefApi].pre
-
-            if (colType =:= typeOf[String]) {
-              val rows = m.annotations
-                .find(_.tpe =:= typeOf[play.boy.annotation.text])
-                .map(x => q"Some(${x.scalaArgs.head})")
-                .getOrElse(q"None")
-
-              q"play.boy.types.StringColumn($name, $label, $rows)"
-            } else if (colType =:= typeOf[Boolean]) {
-              q"play.boy.types.BooleanColumn($name, $label)"
-            } else if (colType =:= typeOf[DateTime]) {
-              q"play.boy.types.DateTimeColumn($name, $label)"
-            } else if (colType =:= typeOf[Short]) {
-              q"play.boy.types.ShortColumn($name, $label)"
-            } else if (colType =:= typeOf[Int]) {
-              q"play.boy.types.IntColumn($name, $label)"
-            } else if (colType =:= typeOf[Long]) {
-              q"play.boy.types.LongColumn($name, $label)"
-            } else if (colType =:= typeOf[Double]) {
-              q"play.boy.types.DoubleColumn($name, $label)"
-            } else if (colType =:= typeOf[Float]) {
-              q"play.boy.types.FloatColumn($name, $label)"
-            } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
-              val enumSymbol = preType.termSymbol.asModule
-              
-              val options = preType.declarations
-                .filter(_.isTerm)
-                .filter(_.asTerm.isVal)
-                .map({ fieldSymbol =>
-                  val itemSymbol = newTermName(fieldSymbol.name.decoded.trim)
-                  q"($enumSymbol.$itemSymbol.toString, $enumSymbol.$itemSymbol.id)"
-                })
-                .toList
-
-              q"play.boy.types.OptionColumn($name, $label, scala.collection.immutable.Map(..$options))"
-            } else {
-              q"play.boy.types.InvalidColumn($name, $label)"
-            }
+            modelTmpImpl(c)(m, colType, name, label, false)
           }).toList
 
         q"($modelName, scala.collection.immutable.List(..$cols))"
