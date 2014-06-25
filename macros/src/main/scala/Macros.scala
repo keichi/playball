@@ -105,26 +105,18 @@ object Macros {
           .map({ m => 
             val name = m.name.decoded
             val label = m.annotations
-              .find(_.tpe =:= typeOf[play.boy.annotation.label]) match {
-                case Some(x) => {
-                  val tmp = x.scalaArgs.head
-                  q"Some($tmp)"
-                }
-                case None => q"None"
-              }
+              .find(_.tpe =:= typeOf[play.boy.annotation.label])
+              .map(x => q"Some(${x.scalaArgs.head})")
+              .getOrElse(q"None")
             
             val colType = m.typeSignature
             val preType = colType.asInstanceOf[TypeRefApi].pre
 
-            if (colType <:< typeOf[String]) {
-            val rows = m.annotations
-              .find(_.tpe =:= typeOf[play.boy.annotation.text]) match {
-                case Some(x) => {
-                  val tmp = x.scalaArgs.head
-                  q"Some($tmp)"
-                }
-                case None => q"None"
-              }
+            if (colType =:= typeOf[String]) {
+              val rows = m.annotations
+                .find(_.tpe =:= typeOf[play.boy.annotation.text])
+                .map(x => q"Some(${x.scalaArgs.head})")
+                .getOrElse(q"None")
 
               q"play.boy.types.StringColumn($name, $label, $rows)"
             } else if (colType =:= typeOf[Boolean]) {
