@@ -7,7 +7,6 @@ import play.api.libs.json._
 import play.api.mvc.BodyParsers._
 
 import models._
-import views._
 import play.boy.dao._
 import play.boy.macros._
 import play.boy.types._
