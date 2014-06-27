@@ -187,4 +187,5 @@ object Macros {
       })
 
     c.Expr(q"(x: String, y: play.api.libs.json.JsValue) => x match { case ..$cases }")
-  }}
+  }
+}
