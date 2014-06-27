@@ -22,7 +22,7 @@ object Duck {
 
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
 abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
-  protected val query: TableQuery[B]
+  val query: TableQuery[B]
 
   lazy val runtimeMirror = typeTag[A].mirror
   lazy val classMirror = runtimeMirror.reflectClass(typeOf[A].typeSymbol.asClass)
