@@ -5,6 +5,7 @@ import play.api.mvc._
 import play.api.db.slick._
 import play.api.libs.json._
 import play.api.mvc.BodyParsers._
+import play.api.db.slick.Config.driver.simple._
 
 import models._
 import play.boy.dao._
@@ -79,7 +80,7 @@ object REST extends Controller {
 
   def meta(model: String) = DBAction { implicit rs =>
     findMeta(model).map({ meta =>
-      val cols: List[JsValue] = meta.map({ col =>
+      val cols: List[JsValue] = meta.cols.map({ col =>
         val common =
           List(
             "name" -> Json.toJson(col.name),

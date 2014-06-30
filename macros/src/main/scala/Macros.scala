@@ -4,6 +4,7 @@ import language.experimental.macros
 import scala.reflect.macros.Context
 import org.joda.time.DateTime
 import play.api.libs.json._
+import scala.slick.lifted.{AbstractTable, Column}
 
 import play.boy.dao._
 import play.boy.types._
@@ -129,7 +130,7 @@ object Macros {
     }
   }
 
-  def modelMetaMapImpl(c: Context): c.Expr[Map[String, List[ColumnBase]]] = {
+  def modelMetaMapImpl(c: Context): c.Expr[Map[String, ModelMeta]] = {
     import c.universe._
     import c.universe.Flag._
 
@@ -140,6 +141,7 @@ object Macros {
         val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
         val TypeRef(_, _, List(modelType, _)) = baseType
         val modelName = modelType.typeSymbol.name.decoded.toLowerCase
+        val modelFullName = modelType.typeSymbol.fullName
 
         val ctor = modelType.declarations
           .filter(_.isMethod)
@@ -159,7 +161,7 @@ object Macros {
             modelTmpImpl(c)(m, colType, name, label, false)
           }).toList
 
-        q"($modelName, scala.collection.immutable.List(..$cols))"
+        q"($modelName, play.boy.types.ModelMeta($modelFullName, scala.collection.immutable.List(..$cols)))"
       }).toList
 
     c.Expr(q"scala.collection.immutable.Map(..$tuples)")

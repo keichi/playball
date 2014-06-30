@@ -15,7 +15,7 @@ object Application extends Controller {
   }
 
   def showForm = Action {
-    val cols = Macros.modelMetaMap.get("beerbrand").get
+    val cols = Macros.modelMetaMap.get("beerbrand").get.cols
 
     Ok(views.html.test(cols))
   }
