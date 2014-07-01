@@ -252,7 +252,7 @@ object Macros {
 
               cq"$predName => x.$colName.$op($arg)"
             })
-          }).toList
+          }).toList :+ cq"_ => true"
 
 
         cq"x:$tableName => pred match { case ..$cols }"

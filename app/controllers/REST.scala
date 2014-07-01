@@ -24,7 +24,7 @@ object REST extends Controller {
     findDAO(model).map({ dao =>
       val kvs = rs.queryString.toList.map(kv => (kv._1, kv._2.head))
       val q = dao.query.filter(_ => true)
-      val q2 = kvs.foldLeft(q)((q, kv) => q.where(x => generatePredicate(x, kv._1, kv._2)))
+      val q2 = kvs.foldLeft(q)((q, kv) => q.filter(x => generatePredicate(x, kv._1, kv._2)))
 
       Ok(handleIndex(model, q2.list.toArray))
     }).getOrElse(
