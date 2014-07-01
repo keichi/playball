@@ -18,10 +18,15 @@ object REST extends Controller {
   val handleIndex = Macros.handleIndex
   val handleGet = Macros.handleGet
   val handleCreate = Macros.handleCreate
+  val generatePredicate = Macros.generatePredicate
 
   def index(model: String) = DBAction { implicit rs =>
     findDAO(model).map({ dao =>
-      Ok(handleIndex(model, dao.list.toArray))
+      val kvs = rs.queryString.toList.map(kv => (kv._1, kv._2.head))
+      val q = dao.query.filter(_ => true)
+      val q2 = kvs.foldLeft(q)((q, kv) => q.where(x => generatePredicate(x, kv._1, kv._2)))
+
+      Ok(handleIndex(model, q2.list.toArray))
     }).getOrElse(
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
     )

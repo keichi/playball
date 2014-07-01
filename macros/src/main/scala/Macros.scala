@@ -190,4 +190,76 @@ object Macros {
 
     c.Expr(q"(x: String, y: play.api.libs.json.JsValue) => x match { case ..$cases }")
   }
+
+  def generatePredicate: ((AbstractTable[_], String, String) => Column[_])
+    = macro generatePredicateImpl
+
+  def generatePredicateImpl(c: Context): c.Expr[(AbstractTable[_], String, String) => Column[_]] = {
+    import c.universe._
+    import c.universe.Flag._
+
+    val models = c.mirror.staticPackage("models").typeSignature.members
+      .filter(_.isModule)
+      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+      .map(moduleSymbol => {
+        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+        val TypeRef(_, _, List(modelType, tableType)) = baseType
+        val tableName = tableType.typeSymbol
+
+        val ctor = modelType.declarations
+          .filter(_.isMethod)
+          .map(_.asMethod)
+          .find(_.isConstructor)
+          .get
+
+        val cols = ctor.asMethod.paramss.head
+          .filter(_.isTerm)
+          .flatMap({ m => 
+            val colType = m.typeSignature
+            val colName = m.name.toTermName
+
+            val (opNames, arg) = if (colType =:= typeOf[String]) {
+              (List("eq", "neq", "like"), q"arg")
+            } else if (colType =:= typeOf[Boolean]) {
+              (List("eq", "neq"), q"arg.toBoolean")
+            } else if (colType =:= typeOf[Short]) {
+              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toShort")
+            } else if (colType =:= typeOf[Int]) {
+              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toInt")
+            } else if (colType =:= typeOf[Long]) {
+              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toLong")
+            } else if (colType =:= typeOf[Double]) {
+              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toDouble")
+            } else if (colType =:= typeOf[Float]) {
+              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toFloat")
+            } else {
+              (List(), null)
+            }
+
+            lazy val opMethodMap = Map(
+              "eq" -> "$eq$eq$eq",
+              "neq" -> "$eq$bang$eq",
+              "gt" -> "$greater",
+              "lt" -> "$less",
+              "ge" -> "$greater$eq",
+              "le" -> "$less$eq",
+              "like" -> "like"
+            )
+
+            opNames.map({opName =>
+              val predName = colName.decoded + "_" + opName
+              val op = newTermName(opMethodMap.get(opName).get)
+
+              cq"$predName => x.$colName.$op($arg)"
+            })
+          }).toList
+
+
+        cq"x:$tableName => pred match { case ..$cols }"
+      }).toList
+
+    val tree = q"(row: scala.slick.lifted.AbstractTable[_], pred: String, arg: String) => row match { case ..$models }"
+
+    c.Expr(tree)
+  }
 }
