@@ -21,6 +21,17 @@ object Duck {
   }
 }
 
+// これは別ファイルに分けた方がいいかも
+object Util {
+  // リソース開放のためのLoan Pattern
+  def using[A, R <: { def close() }](r : R)(f : R => A) : A =
+    try {
+      f(r)
+    } finally {
+      r.close()
+  }
+}
+
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
 abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   val query: TableQuery[B]
@@ -95,14 +106,10 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
   def toCSV(implicit s: Session): String = {
     // StringWriterは閉じなくてよいらしい
     val sw = new java.io.StringWriter()
-    val writer = CSVWriter.open(sw)
-
-    try {
+    Util.using(CSVWriter.open(sw)) { w =>
       query.list.foreach({ row: A =>
-        writer.writeRow(row.productIterator.map(colToString).toSeq)
+        w.writeRow(row.productIterator.map(colToString).toSeq)
       })
-    } finally {
-      writer.close()
     }
 
     sw.toString
