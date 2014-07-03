@@ -51,6 +51,8 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
 
   lazy val fieldSymbols = typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
 
+  lazy val paramSymbols = defaultConstructor.paramss.head
+
   private def updateField(item: A, kvs: Map[String, Any]): A = {
     val instanceMirror = currentMirror.reflect(item)
 
@@ -156,21 +158,21 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
   def fromCSV(csv: String)(implicit s: Session): Unit = {
     // StringReaderは閉じなくてよいらしい
     val sr = new java.io.StringReader(csv)
-    val types = defaultConstructor.paramss.head.map(_.typeSignature)
+    val types = paramSymbols.map(_.typeSignature)
     Util.using(CSVReader.open(sr)) { r =>
       val items = r.iterator.flatMap({ cols =>
         val args = cols.zip(types).map({ case(col, t) =>
           try {
             colFromString(col, t)
           } catch {
-            case e => null
+            case e: Throwable => null
           }
         })
 
-        if (args.length == defaultConstructor.paramss.head.length) {
+        try {
           Some(constructorMirror(args:_*).asInstanceOf[A])
-        } else {
-          None
+        } catch {
+          case e: Throwable => None
         }
       })
 
