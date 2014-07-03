@@ -11,6 +11,8 @@ import views._
 
 object Application extends Controller {
   def index = DBAction { implicit s =>
+    println(BeerBrands.toCSV)
+
     Ok(views.html.index(BeerBrands.list))
   }
 

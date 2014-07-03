@@ -3,6 +3,7 @@ package play.boy.dao
 import scala.reflect.runtime.universe._
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
+import com.github.tototoshi.csv.CSVWriter
 
 // ダックタイピング用のstructural typeをまとめたクラス
 object Duck {
@@ -75,15 +76,39 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
     (query returning query.map(_.id)) += item
   }
 
+  private def colToString(col: Any): String = {
+    col match {
+      case x: String => x
+      case x: Short => x.toString
+      case x: Int => x.toString
+      case x: Long => x.toString
+      case x: Float => x.toString
+      case x: Double => x.toString
+      case x: DateTime => x.toString
+      case x: Boolean => x.toString
+      case Some(x) => colToString(x)
+      case None => ""
+      case x => col.toString
+    }
+  }
+
   def toCSV(implicit s: Session): String = {
-    val builder = new StringBuilder()
+    // StringWriterは閉じなくてよいらしい
+    val sw = new java.io.StringWriter()
+    val writer = CSVWriter.open(sw)
 
-    query.list.foreach({ row: A =>
-      row.productIterator.foreach(c => builder ++= c.toString += ',')
-      builder += '\n'
-    })
+    try {
+      query.list.foreach({ row: A =>
+        writer.writeRow(row.productIterator.map(colToString).toSeq)
+      })
+    } finally {
+      writer.close()
+    }
 
-    builder.toString
+    sw.toString
+  }
+
+  def fromCSV(csv: String)(implicit s: Session): Unit = {
   }
 
   def findById(id: Long)(implicit s: Session): Option[A] = {
