@@ -1,9 +1,10 @@
 package play.boy.dao
 
+import scala.reflect.runtime.currentMirror
 import scala.reflect.runtime.universe._
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
-import com.github.tototoshi.csv.CSVWriter
+import com.github.tototoshi.csv.{CSVReader, CSVWriter}
 
 // ダックタイピング用のstructural typeをまとめたクラス
 object Duck {
@@ -36,8 +37,7 @@ object Util {
 abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   val query: TableQuery[B]
 
-  lazy val runtimeMirror = typeTag[A].mirror
-  lazy val classMirror = runtimeMirror.reflectClass(typeOf[A].typeSymbol.asClass)
+  lazy val classMirror = currentMirror.reflectClass(typeOf[A].typeSymbol.asClass)
 
   lazy val constructorSymbol = typeOf[A].declaration(nme.CONSTRUCTOR)
   lazy val defaultConstructor =
@@ -52,7 +52,7 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
   lazy val fieldSymbols = typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
 
   private def updateField(item: A, kvs: Map[String, Any]): A = {
-    val instanceMirror = runtimeMirror.reflect(item)
+    val instanceMirror = currentMirror.reflect(item)
 
     val fieldValues = fieldSymbols.map(f =>
         kvs.get(f.name.decoded).getOrElse(instanceMirror.reflectField(f).get)
@@ -115,7 +115,50 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
     sw.toString
   }
 
+  private def colFromString(col: String, colType: Type): Any = {
+    if (colType =:= typeOf[String]) {
+      col
+    } else if (colType =:= typeOf[Boolean]) {
+      col.toBoolean
+    } else if (colType =:= typeOf[DateTime]) {
+      new DateTime(col)
+    } else if (colType =:= typeOf[Short]) {
+      col.toShort
+    } else if (colType =:= typeOf[Int]) {
+      col.toInt
+    } else if (colType =:= typeOf[Long]) {
+      col.toLong
+    } else if (colType =:= typeOf[Double]) {
+      col.toDouble
+    } else if (colType =:= typeOf[Float]) {
+      col.toFloat
+    } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enumeration]) {
+      val enumType = colType.asInstanceOf[TypeRefApi].pre
+      val moduleMirror = currentMirror.reflectModule(enumType.termSymbol.asModule)
+      val obj = moduleMirror.instance.asInstanceOf[Enumeration]
+
+      try {
+        obj.withName(col)
+      } catch {
+        case e: java.util.NoSuchElementException => obj.apply(col.toInt)
+      }
+    } else if (colType <:< typeOf[Option[_]]) {
+      if (col == "") {
+        None
+      } else {
+        Some(colFromString(col, colType.asInstanceOf[TypeRefApi].args.head))
+      }
+    } else {
+      null
+    }
+  }
+
   def fromCSV(csv: String)(implicit s: Session): Unit = {
+    // StringReaderは閉じなくてよいらしい
+    val sr = new java.io.StringReader(csv)
+    Util.using(CSVReader.open(sr)) { r =>
+      r.foreach(println)
+    }
   }
 
   def findById(id: Long)(implicit s: Session): Option[A] = {
