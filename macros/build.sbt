@@ -6,6 +6,8 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 
 resolvers += Resolver.sonatypeRepo("releases")
 
+scalacOptions ++= Seq("-feature", "-deprecation")
+
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % "2.10.3",
   "org.scalamacros" %% "quasiquotes" % "2.0.0",

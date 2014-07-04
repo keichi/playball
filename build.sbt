@@ -2,6 +2,8 @@ name := "playboy-app"
 
 version := "1.0-SNAPSHOT"
 
+scalacOptions ++= Seq("-feature", "-deprecation")
+
 libraryDependencies ++= Seq(
   jdbc,
   cache,
