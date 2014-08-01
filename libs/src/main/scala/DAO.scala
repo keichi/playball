@@ -68,6 +68,10 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
     query.list
   }
 
+  def list(pageSize: Int, page: Int)(implicit s: Session): List[A] = {
+    query.drop(pageSize * page).take(pageSize).list
+  }
+
   def count(implicit s: Session): Int = {
     Query(query.length).first
   }
