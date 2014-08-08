@@ -44,6 +44,40 @@ class RESTSpec extends Specification with JsonMatchers {
       json.asInstanceOf[JsArray].value.size must equalTo(6)
     }
 
+    "return filtered list of objects 1" in new WithApplication {
+      val result = route(FakeRequest(GET, "/api/beerbrand?country_eq=Japan")).get
+
+      status(result) must equalTo(OK)
+      charset(result) must beSome("utf-8")
+      contentType(result) must beSome("application/json")
+
+      val json = Json.parse(contentAsString(result))
+      json must beAnInstanceOf[JsArray]
+      json.asInstanceOf[JsArray].value.size must equalTo(1)
+      
+      val str = contentAsString(result)
+      str must /#(0) /("country" -> "Japan")
+    }
+
+    "return filtered list of objects 2" in new WithApplication {
+      val result = route(FakeRequest(GET, "/api/beerbrand?strength_ge=5.0")).get
+
+      status(result) must equalTo(OK)
+      charset(result) must beSome("utf-8")
+      contentType(result) must beSome("application/json")
+
+      val json = Json.parse(contentAsString(result))
+      json must beAnInstanceOf[JsArray]
+      json.asInstanceOf[JsArray].value.size must equalTo(5)
+
+      val str = contentAsString(result)
+      str must /#(0) /("strength" -> (be_>=(5.0) ^^ ((_:String).toDouble)))
+      str must /#(1) /("strength" -> (be_>=(5.0) ^^ ((_:String).toDouble)))
+      str must /#(2) /("strength" -> (be_>=(5.0) ^^ ((_:String).toDouble)))
+      str must /#(3) /("strength" -> (be_>=(5.0) ^^ ((_:String).toDouble)))
+      str must /#(4) /("strength" -> (be_>=(5.0) ^^ ((_:String).toDouble)))
+    }
+
     "return object with specified id" in new WithApplication {
       val result = route(FakeRequest(GET, "/api/beerbrand/1")).get
 
