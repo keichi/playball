@@ -89,7 +89,7 @@ class RESTSpec extends Specification with JsonMatchers {
       json must / ("id" -> 1)
       json must / ("name" -> "Zillertal")
       json must / ("country" -> "Austria")
-      json must / ("style" -> 1)
+      json must / ("style" -> "白ビール")
       json must / ("tasty" -> true)
       json must / ("strength" -> 5.0)
       json must / ("createdAt" -> ".*".r)
@@ -103,7 +103,7 @@ class RESTSpec extends Specification with JsonMatchers {
           .withJsonBody(Json.parse("""{
             "name":"TestBeer",
             "country":"TestCountry",
-            "style":1,
+            "style":"白ビール",
             "tasty":false,
             "strength":99.0,
             "comment":"Test comment.",
@@ -124,7 +124,7 @@ class RESTSpec extends Specification with JsonMatchers {
           .withJsonBody(Json.parse("""{
             "name":"TestBeer",
             "country":"TestCountry",
-            "style":1,
+            "style":"白ビール",
             "tasty":false,
             "strength":99.0,
             "comment":"Test comment.",
