@@ -211,6 +211,10 @@ object Macros {
     } else if (colType <:< typeOf[Option[_]]) {
       val (_, inner) = generatePredicateParser(c)(colType.asInstanceOf[TypeRefApi].args.head)
       (List("eq", "neq"), q"$inner")
+    } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
+      val enumType = colType.asInstanceOf[TypeRefApi].pre
+      val enumName = enumType.termSymbol
+      (List("eq", "neq"), q"$enumName.withName(arg)")
     } else {
       (List(), null)
     }
