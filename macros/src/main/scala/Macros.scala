@@ -4,7 +4,7 @@ import language.experimental.macros
 import scala.reflect.macros.Context
 import org.joda.time.DateTime
 import play.api.libs.json._
-import scala.slick.lifted.{AbstractTable, Column}
+import scala.slick.lifted.{AbstractTable, Column, ColumnOrdered}
 
 import play.boy.dao._
 import play.boy.types._
@@ -218,6 +218,47 @@ object Macros {
     } else {
       (List(), null)
     }
+  }
+
+  def generateSorter: ((AbstractTable[_], String, Boolean) => ColumnOrdered[_])
+    = macro generateSorterImpl
+
+  def generateSorterImpl(c: Context): c.Expr[((AbstractTable[_], String, Boolean) => ColumnOrdered[_])] = {
+    import c.universe._
+
+    val models = c.mirror.staticPackage("models").typeSignature.members
+      .filter(_.isModule)
+      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+      .map(moduleSymbol => {
+        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+        val TypeRef(_, _, List(modelType, tableType)) = baseType
+        val tableName = tableType.typeSymbol
+
+        val ctor = modelType.declarations
+          .filter(_.isMethod)
+          .map(_.asMethod)
+          .find(_.isConstructor)
+          .get
+
+        val cols = ctor.asMethod.paramss.head
+          .filter(_.isTerm)
+          .flatMap({ m => 
+            val colName = m.name.toTermName
+            val colNameString = colName.decoded
+
+            Seq(
+              cq"$colNameString if direction => x.$colName.asc",
+              cq"$colNameString if !direction => x.$colName.desc"
+            )
+          }).toList :+ cq"_ => x.id.asc"
+
+
+        cq"x:$tableName => col match { case ..$cols }"
+      }).toList
+
+    val tree = q"(row: scala.slick.lifted.AbstractTable[_], col: String, direction: Boolean) => row match { case ..$models }"
+
+    c.Expr(tree)
   }
 
   def generatePredicate: ((AbstractTable[_], String, String) => Column[_])

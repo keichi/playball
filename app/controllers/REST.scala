@@ -19,14 +19,25 @@ object REST extends Controller {
   val handleGet = Macros.handleGet
   val handleCreate = Macros.handleCreate
   val generatePredicate = Macros.generatePredicate
+  val generateSorter = Macros.generateSorter
 
   def index(model: String) = DBAction { implicit rs =>
     findDAO(model).map({ dao =>
       val kvs = rs.queryString.toList.map(kv => (kv._1, kv._2.head))
       val q = dao.query.filter(_ => true)
       val q2 = kvs.foldLeft(q)((q, kv) => q.filter(x => generatePredicate(x, kv._1, kv._2)))
+      
+      val sortKey = rs.queryString.getOrElse("sort_by", Seq("id")).head
+      val (col, direction) = if (sortKey.startsWith("-")) {
+        (sortKey.substring(1) ,false)
+      } else if (sortKey.startsWith("+")) {
+        (sortKey.substring(1) ,true)
+      } else {
+        (sortKey, true)
+      }
+      val q3 = q2.sortBy(x => generateSorter(x, col, direction))
 
-      Ok(handleIndex(model, q2.list.toArray))
+      Ok(handleIndex(model, q3.list.toArray))
     }).getOrElse(
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
     )
