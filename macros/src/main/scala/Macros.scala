@@ -191,12 +191,36 @@ object Macros {
     c.Expr(q"(x: String, y: play.api.libs.json.JsValue) => x match { case ..$cases }")
   }
 
+  def generatePredicateParser(c: Context)(colType: c.Type): (List[String], c.Tree) = {
+    import c.universe._
+
+    if (colType =:= typeOf[String]) {
+      (List("eq", "neq", "like"), q"arg")
+    } else if (colType =:= typeOf[Boolean]) {
+      (List("eq", "neq"), q"arg.toBoolean")
+    } else if (colType =:= typeOf[Short]) {
+      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toShort")
+    } else if (colType =:= typeOf[Int]) {
+      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toInt")
+    } else if (colType =:= typeOf[Long]) {
+      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toLong")
+    } else if (colType =:= typeOf[Double]) {
+      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toDouble")
+    } else if (colType =:= typeOf[Float]) {
+      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toFloat")
+    } else if (colType <:< typeOf[Option[_]]) {
+      val (_, inner) = generatePredicateParser(c)(colType.asInstanceOf[TypeRefApi].args.head)
+      (List("eq", "neq"), q"$inner")
+    } else {
+      (List(), null)
+    }
+  }
+
   def generatePredicate: ((AbstractTable[_], String, String) => Column[_])
     = macro generatePredicateImpl
 
   def generatePredicateImpl(c: Context): c.Expr[(AbstractTable[_], String, String) => Column[_]] = {
     import c.universe._
-    import c.universe.Flag._
 
     val models = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)
@@ -218,23 +242,7 @@ object Macros {
             val colType = m.typeSignature
             val colName = m.name.toTermName
 
-            val (opNames, arg) = if (colType =:= typeOf[String]) {
-              (List("eq", "neq", "like"), q"arg")
-            } else if (colType =:= typeOf[Boolean]) {
-              (List("eq", "neq"), q"arg.toBoolean")
-            } else if (colType =:= typeOf[Short]) {
-              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toShort")
-            } else if (colType =:= typeOf[Int]) {
-              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toInt")
-            } else if (colType =:= typeOf[Long]) {
-              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toLong")
-            } else if (colType =:= typeOf[Double]) {
-              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toDouble")
-            } else if (colType =:= typeOf[Float]) {
-              (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toFloat")
-            } else {
-              (List(), null)
-            }
+            val (opNames, arg) = generatePredicateParser(c)(colType)
 
             lazy val opMethodMap = Map(
               "eq" -> "$eq$eq$eq",
