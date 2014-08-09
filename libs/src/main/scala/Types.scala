@@ -12,12 +12,12 @@ abstract class Enum extends Enumeration {
   )
   implicit val writes = new Writes[Value] {
     def writes(c: Value): JsValue = {
-      JsNumber(c.id)
+      JsString(c.toString)
     }
   }
   implicit val reads = new Reads[Value] {
     def reads(js: JsValue): JsResult[Value] = {
-      JsSuccess(apply(js.as[Int]))
+      JsSuccess(withName(js.as[String]))
     }
   }
   implicit val format = Format(reads, writes)
