@@ -15,12 +15,6 @@ object Application extends Controller {
     Ok(views.html.index(BeerBrands.list))
   }
 
-  def showForm = Action {
-    val cols = Macros.modelMetaMap.get("beerbrand").get.cols
-
-    Ok(views.html.test(cols))
-  }
-
   def postForm = Action { request =>
     println(request.body)
 
