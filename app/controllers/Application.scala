@@ -12,7 +12,7 @@ import views._
 object Application extends Controller {
   def index = DBAction { implicit s =>
 
-    Ok(views.html.index(BeerBrands.list))
+    Ok(views.html.index())
   }
 
   def postForm = Action { request =>
