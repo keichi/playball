@@ -1,4 +1,4 @@
-@(title: String)(content: Html)
+@(title: String)(content: Html)(implicit flash: Flash)
 
 <!DOCTYPE html>
 
@@ -19,12 +19,45 @@
 		<header class="navbar navbar-default navbar-static-top" role="navigation">
 		<div class="container">
 			<div class="navbar-header">
-				<a class="navbar-brand" href="#">BeerDB</a>
+				<a class="navbar-brand" href="/">BeerDB</a>
 			</div>
 		</div>
 		</header>
 
-	    <div class="container">
+	    <div class="container" ng-controller="FlashMessageCtrl">
+        @if(flash.get("success")) {
+            <div class="alert alert-dismissible alert-success" role="alert" ng-show="showSuccess">
+                <button type="button" class="close" data-dismiss="alert" ng-click="showSuccess=false">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                @flash.get("success")
+            </div>
+        }
+        @if(flash.get("info")) {
+            <div class="alert alert-dismissible alert-info" role="alert" ng-show="showInfo">
+                <button type="button" class="close" data-dismiss="alert" ng-click="showInfo=false">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                @flash.get("info")
+            </div>
+        }
+        @if(flash.get("warning")) {
+            <div class="alert alert-dismissible alert-warning" role="alert" ng-show="showWarning">
+                <button type="button" class="close" data-dismiss="alert" ng-click="showWarning=false">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                @flash.get("warning")
+            </div>
+        }
+        @if(flash.get("error")) {
+            <div class="alert alert-dismissible alert-error" role="alert" ng-show="showError">
+                <button type="button" class="close" data-dismiss="alert" ng-click="showError=false">
+                    <span aria-hidden="true">&times;</span><span class="sr-only">Close</span>
+                </button>
+                @flash.get("error")
+            </div>
+        }
+
         @content
         </div>
     </body>
