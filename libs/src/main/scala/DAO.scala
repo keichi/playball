@@ -38,21 +38,21 @@ object Util {
 abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   val query: TableQuery[B]
 
-  lazy val classMirror = currentMirror.reflectClass(typeOf[A].typeSymbol.asClass)
+  private lazy val classMirror = currentMirror.reflectClass(typeOf[A].typeSymbol.asClass)
 
-  lazy val constructorSymbol = typeOf[A].declaration(nme.CONSTRUCTOR)
-  lazy val defaultConstructor =
+  private lazy val constructorSymbol = typeOf[A].declaration(nme.CONSTRUCTOR)
+  private lazy val defaultConstructor =
     if (constructorSymbol.isMethod) {
       constructorSymbol.asMethod
     } else {
       val ctors = constructorSymbol.asTerm.alternatives
       ctors.map(_.asMethod).find(_.isPrimaryConstructor).get
     }
-  lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
+  private lazy val constructorMirror = classMirror.reflectConstructor(defaultConstructor)
 
-  lazy val fieldSymbols = typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
+  private lazy val fieldSymbols = typeOf[A].members.filter(_.isTerm).map(_.asTerm).filter(_.isAccessor)
 
-  lazy val paramSymbols = defaultConstructor.paramss.head
+  private lazy val paramSymbols = defaultConstructor.paramss.head
 
   private def updateField(item: A, kvs: Map[String, Any]): A = {
     val instanceMirror = currentMirror.reflect(item)
