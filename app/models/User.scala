@@ -48,7 +48,7 @@ object User {
 class Users(tag: Tag) extends Table[User](tag, "user") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
   def name = column[String]("name")
-  def username = column[String]("name", O.NotNull)
+  def username = column[String]("username", O.NotNull)
   def mail = column[String]("mail")
   def role = column[Role]("role")
   def zip = column[String]("zip")
