@@ -1,0 +1,22 @@
+@()(implicit flash: Flash)
+
+@main("ログイン") {
+<div class="col-md-4 col-md-offset-4">
+  <div class="panel panel-default">
+    <div class="panel-heading"><h3 class="panel-title"><strong>ログイン</strong></h3></div>
+    <div class="panel-body">
+    <form role="form" action="@routes.LogInOut.authenticate" method="POST">
+      <div class="form-group">
+        <label for="txtUsername">ユーザ名</label>
+        <input type="text" class="form-control" id="txtUsername" placeholder="ユーザ名を入力">
+      </div>
+      <div class="form-group">
+        <label for="txtPassword">パスワード</label>
+        <input type="password" class="form-control" id="txtPassword" placeholder="パスワードを入力">
+      </div>
+      <input type="submit" class="btn btn-sm btn-default" value="ログイン">
+    </form>
+    </div>
+  </div>
+</div>
+}
