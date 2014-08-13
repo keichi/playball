@@ -47,3 +47,9 @@ case class InvalidColumn(val name: String, val label: Option[String], val option
 import com.github.tototoshi.slick.GenericJodaSupport
 
 object joda extends GenericJodaSupport(play.api.db.slick.Config.driver)
+
+object json {
+  implicit object DefaultJodaDateWrites extends Writes[org.joda.time.DateTime] {
+    def writes(d: org.joda.time.DateTime): JsValue = JsString(d.toString)
+  }
+}

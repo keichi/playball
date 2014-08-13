@@ -43,6 +43,7 @@ case class User(
 )
 
 object User {
+  import play.boy.types.json._
   implicit val format = Json.format[User]
 }
 

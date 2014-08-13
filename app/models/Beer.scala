@@ -47,6 +47,7 @@ case class BeerBrand(
 )
 
 object BeerBrand {
+  import play.boy.types.json._
   implicit val format = Json.format[BeerBrand]
 }
 
