@@ -14,10 +14,4 @@ object Application extends Controller {
 
     Ok(views.html.index())
   }
-
-  def postForm = Action { request =>
-    println(request.body)
-
-    Redirect("/")
-  }
 }
