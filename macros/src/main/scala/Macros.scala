@@ -208,9 +208,9 @@ object Macros {
       (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toDouble")
     } else if (colType =:= typeOf[Float]) {
       (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toFloat")
-    } else if (colType <:< typeOf[Option[_]]) {
-      val (_, inner) = generatePredicateParser(c)(colType.asInstanceOf[TypeRefApi].args.head)
-      (List("eq", "neq"), q"$inner")
+    // } else if (colType <:< typeOf[Option[_]]) {
+    //   val (_, inner) = generatePredicateParser(c)(colType.asInstanceOf[TypeRefApi].args.head)
+    //   (List("eq", "neq"), q"$inner")
     } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
       val enumType = colType.asInstanceOf[TypeRefApi].pre
       val enumName = enumType.termSymbol

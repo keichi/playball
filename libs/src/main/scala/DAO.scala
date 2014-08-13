@@ -89,7 +89,7 @@ abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Ta
   }
 
   def create(args: Any*)(implicit s: Session): Long = {
-    val item = constructorMirror((args :+ new DateTime :+ new DateTime ):_*).asInstanceOf[A]
+    val item = constructorMirror((args :+ None :+ None :+ new DateTime :+ new DateTime ):_*).asInstanceOf[A]
 
     (query returning query.map(_.id)) += item
   }

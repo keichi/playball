@@ -40,6 +40,8 @@ case class BeerBrand(
   strength: Double,
   @label("コメント") @text(5)
   comment: String,
+  createdBy: Option[Long] = None,
+  updatedBy: Option[Long] = None,
   createdAt: DateTime = new DateTime,
   updatedAt: DateTime = new DateTime
 )
@@ -57,9 +59,11 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "beer") {
   def tasty = column[Boolean]("tasty")
   def strength = column[Double]("strength")
   def comment = column[String]("comment")
+  def createdBy = column[Option[Long]]("created_by")
+  def updatedBy = column[Option[Long]]("updated_by")
   def createdAt = column[DateTime]("created_at")
   def updatedAt = column[DateTime]("updated_at")
-  def * = (id.?, name, country, style, tasty, strength, comment, createdAt, updatedAt) <> ((BeerBrand.apply _).tupled, BeerBrand.unapply _)
+  def * = (id.?, name, country, style, tasty, strength, comment, createdBy, updatedBy, createdAt, updatedAt) <> ((BeerBrand.apply _).tupled, BeerBrand.unapply _)
 }
 
 object BeerBrands extends DAO[BeerBrand, BeerBrands] {

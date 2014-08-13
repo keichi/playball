@@ -36,6 +36,8 @@ case class User(
   @label("パスワード")
   password: String,
   hashed: Boolean,
+  createdBy: Option[Long] = None,
+  updatedBy: Option[Long] = None,
   createdAt: DateTime = new DateTime,
   updatedAt: DateTime = new DateTime
 )
@@ -55,9 +57,11 @@ class Users(tag: Tag) extends Table[User](tag, "user") {
   def address = column[String]("address")
   def password = column[String]("password", O.NotNull)
   def hashed = column[Boolean]("hashed")
+  def createdBy = column[Option[Long]]("created_by")
+  def updatedBy = column[Option[Long]]("updated_by")
   def createdAt = column[DateTime]("created_at")
   def updatedAt = column[DateTime]("updated_at")
-  def * = (id.?, name, username, mail, role, zip, address, password, hashed, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply _)
+  def * = (id.?, name, username, mail, role, zip, address, password, hashed, createdBy, updatedBy, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply _)
 }
 
 object Users extends DAO[User, Users] {
