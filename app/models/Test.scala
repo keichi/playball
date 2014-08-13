@@ -4,12 +4,12 @@ import play.api.db.slick.Config.driver.simple._
 import scala.slick.lifted.Tag
 
 import org.joda.time.DateTime
-import com.github.tototoshi.slick.H2JodaSupport._
 
 import play.api.libs.json._
 import play.boy.dao._
 import play.boy.annotation._
 import play.boy.types._
+import play.boy.types.joda._
 
 // 列挙型はEnumを継承する。使い方はEnumerationと同じ。
 object BeerStyle2 extends Enum {

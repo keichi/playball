@@ -6,15 +6,12 @@ import play.api.db.slick._
 import play.api.libs.json._
 import play.api.mvc.BodyParsers._
 import play.api.db.slick.Config.driver.simple._
-import com.github.tototoshi.slick.GenericJodaSupport
-
-object JodaSupport extends GenericJodaSupport(play.api.db.slick.Config.driver)
-import JodaSupport._
 
 import models._
 import play.boy.dao._
 import play.boy.macros._
 import play.boy.types._
+import play.boy.types.joda._
 
 object REST extends Controller {
   val findDAO = Macros.daoMap.get _

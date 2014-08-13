@@ -43,3 +43,7 @@ case class FloatColumn(val name: String, val label: Option[String], val optional
 
 case class OptionColumn(val name: String, val label: Option[String], val optional: Boolean, options: Map[String, Int]) extends ColumnBase
 case class InvalidColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
+
+import com.github.tototoshi.slick.GenericJodaSupport
+
+object joda extends GenericJodaSupport(play.api.db.slick.Config.driver)
