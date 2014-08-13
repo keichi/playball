@@ -3,11 +3,9 @@ package controllers
 import play.api._
 import play.api.mvc._
 
-import play.boy.auth._
-
 import views._
 
-object LogInOut extends Controller with AuthController {
+object LogInOut extends Controller {
   def login = Action { implicit s =>
     Ok(views.html.login())
   }
