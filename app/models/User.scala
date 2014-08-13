@@ -23,6 +23,8 @@ case class User(
   id: Option[Long],
   @label("名前")
   name: String,
+  @label("ユーザ名")
+  username: String,
   @label("メールアドレス")
   mail: String,
   @label("権限")
@@ -45,16 +47,17 @@ object User {
 // case classをmappingするTable[A]を定義する
 class Users(tag: Tag) extends Table[User](tag, "user") {
   def id = column[Long]("id", O.PrimaryKey, O.AutoInc)
-  def name = column[String]("name", O.NotNull)
+  def name = column[String]("name")
+  def username = column[String]("name", O.NotNull)
   def mail = column[String]("mail")
   def role = column[Role]("role")
   def zip = column[String]("zip")
   def address = column[String]("address")
-  def password = column[String]("password")
+  def password = column[String]("password", O.NotNull)
   def hashed = column[Boolean]("hashed")
   def createdAt = column[DateTime]("created_at")
   def updatedAt = column[DateTime]("updated_at")
-  def * = (id.?, name, mail, role, zip, address, password, hashed, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply _)
+  def * = (id.?, name, username, mail, role, zip, address, password, hashed, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply _)
 }
 
 object Users extends DAO[User, Users] {

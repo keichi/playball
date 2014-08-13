@@ -28,6 +28,17 @@ object Global extends GlobalSettings {
             BeerBrand(None, "Asahi Super Dry", "Japan", BeerStyle.Pilsener, false, 5.6, "")
           ).foreach(BeerBrands.insert)
         }
+
+        if (Users.count == 0) {
+          Seq(
+            User(None, "山田太郎", "yamada1", "yamada1@example.com", Role.Administrator, "123-4567", "ダミー住所", "test", false),
+            User(None, "山田花子", "yamada2", "yamada2@example.com", Role.NormalUser, "123-4567", "ダミー住所", "test", false),
+            User(None, "山田次郎", "yamada3", "yamada3@example.com", Role.NormalUser, "123-4567", "ダミー住所", "test", false),
+            User(None, "山田三郎", "yamada4", "yamada4@example.com", Role.NormalUser, "123-4567", "ダミー住所", "test", false),
+            User(None, "田中太郎", "tanaka1", "tanaka1@example.com", Role.NormalUser, "123-4567", "ダミー住所", "test", false),
+            User(None, "田中花子", "tanaka2", "tanaka2@example.com", Role.Administrator, "123-4567", "ダミー住所", "test", false)
+          ).foreach(Users.insert)
+        }
       }
     }
   }
