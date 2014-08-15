@@ -1,7 +1,6 @@
 package play.boy.types
 
 import play.api.libs.json._
-import play.api.libs.functional.syntax._
 import play.api.db.slick.Config.driver.simple._
 
 // EnumerationからTable[A]へのmappingを自動的に行うためのクラス
