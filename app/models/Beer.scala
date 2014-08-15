@@ -74,4 +74,9 @@ object BeerBrands extends DAO[BeerBrand, BeerBrands] {
   def findStronger(strength: Double) = {
     query.filter(_.strength >= strength)
   }
+
+  @expose
+  def findByStyleAndCountry(style: BeerStyle, country: String) = {
+    query.filter(b => b.style === style && b.country === country)
+  }
 }
