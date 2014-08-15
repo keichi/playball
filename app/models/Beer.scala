@@ -70,13 +70,11 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "beer") {
 object BeerBrands extends DAO[BeerBrand, BeerBrands] {
   val query = TableQuery[BeerBrands]
 
-  @expose
-  def findStronger(strength: Double) = {
+  def findStrongerRPC(strength: Double) = {
     query.filter(_.strength >= strength)
   }
 
-  @expose
-  def findByStyleAndCountry(style: BeerStyle, country: String) = {
+  def findByStyleAndCountryRPC(style: BeerStyle, country: String) = {
     query.filter(b => b.style === style && b.country === country)
   }
 }

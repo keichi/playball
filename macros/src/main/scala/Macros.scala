@@ -8,7 +8,6 @@ import scala.slick.lifted.{AbstractTable, Column, ColumnOrdered}
 
 import play.boy.dao._
 import play.boy.types._
-import play.boy.annotation.expose
 
 object Macros {
   def handleIndex: ((String, Array[_]) => JsValue) = macro handleIndexImpl
@@ -338,11 +337,11 @@ object Macros {
         val writesName = newTermName(writesSymbol.name.toString.trim)
 
         val methods = daoSymbol.typeSignature.members
-          .filter(m => m.annotations.exists(a => a.tpe =:= typeOf[expose]))
+          .filter(m => m.name.decoded.endsWith("RPC"))
           .map(_.asMethod)
 
         methods.map(methodSymbol => {
-          val methodName = methodSymbol.name.decoded
+          val methodName = "RPC$".r.replaceAllIn(methodSymbol.name.decoded, "")
           val args = methodSymbol.paramss.head.map(argSymbol => {
             val argType = argSymbol.typeSignature
             val common = q"args.get(${argSymbol.name.decoded}).map(_.as[$argType])"
