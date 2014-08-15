@@ -16,9 +16,12 @@ import play.boy.types.joda._
 object REST extends Controller {
   val findDAO = Macros.daoMap.get _
   val findMeta = Macros.modelMetaMap.get _
+
   val handleIndex = Macros.handleIndex
   val handleGet = Macros.handleGet
   val handleCreate = Macros.handleCreate
+  val handleRPC = Macros.handleRPC
+
   val generatePredicate = Macros.generatePredicate
   val generateSorter = Macros.generateSorter
 
@@ -149,5 +152,10 @@ object REST extends Controller {
     }).getOrElse(
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
     )
+  }
+
+  def rpc(model: String, method: String) = DBAction(parse.json) { implicit rs =>
+    val JsObject(fields) = rs.request.body
+    Ok(handleRPC(model, method, fields.toMap, rs.dbSession))
   }
 }

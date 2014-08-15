@@ -5,3 +5,4 @@ import scala.annotation.StaticAnnotation
 // modelクラスのメンバに使えるアノテーション
 case class label(message: String) extends StaticAnnotation
 case class text(rows: Int) extends StaticAnnotation
+case class expose() extends StaticAnnotation

@@ -8,6 +8,7 @@ import scala.slick.lifted.{AbstractTable, Column, ColumnOrdered}
 
 import play.boy.dao._
 import play.boy.types._
+import play.boy.annotation.expose
 
 object Macros {
   def handleIndex: ((String, Array[_]) => JsValue) = macro handleIndexImpl
@@ -315,6 +316,67 @@ object Macros {
 
     val tree = q"(row: scala.slick.lifted.AbstractTable[_], pred: String, arg: String) => row match { case ..$models }"
 
+    c.Expr(tree)
+  }
+
+  def handleRPC: ((String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => JsValue) = macro handleRPCImpl
+
+  def handleRPCImpl(c: Context): c.Expr[(String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => JsValue] = {
+    import c.universe._
+    import c.universe.Flag._
+
+    val cases = c.mirror.staticPackage("models").typeSignature.members
+      .filter(_.isModule)
+      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+      .flatMap(daoSymbol => {
+        val baseType = daoSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+        val TypeRef(_, _, List(modelType, _)) = baseType
+
+        val modelSymbol = modelType.typeSymbol.companionSymbol
+        val modelName = modelSymbol.name.decoded.toLowerCase
+        val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
+        val writesName = newTermName(writesSymbol.name.toString.trim)
+
+        val methods = daoSymbol.typeSignature.members
+          .filter(m => m.annotations.exists(a => a.tpe =:= typeOf[expose]))
+          .map(_.asMethod)
+
+        methods.map(methodSymbol => {
+          val methodName = methodSymbol.name.decoded
+          val args = methodSymbol.paramss.head.map(argSymbol => {
+            val argType = argSymbol.typeSignature
+            val common = q"args.get(${argSymbol.name.decoded}).map(_.as[$argType])"
+
+            if (argType =:= typeOf[String]) {
+              q"""$common.getOrElse("")"""
+            } else if (argType =:= typeOf[Boolean]) {
+              q"$common.getOrElse(false)"
+            } else if (argType =:= typeOf[Short]) {
+              q"$common.getOrElse(0:Short)"
+            } else if (argType =:= typeOf[Int]) {
+              q"$common.getOrElse(0)"
+            } else if (argType =:= typeOf[Long]) {
+              q"$common.getOrElse(0:Long)"
+            } else if (argType =:= typeOf[Double]) {
+              q"$common.getOrElse(0.0)"
+            } else if (argType =:= typeOf[Float]) {
+              q"$common.getOrElse(0:Float)"
+            } else if (argType =:= typeOf[DateTime]) {
+              q"$common.getOrElse(new DateTime)"
+            } else if (argType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
+              q"$common.getOrElse($argType.values.first)"
+            } else if (argType <:< typeOf[Option[_]]) {
+              q"$common.getOrElse(None)"
+            } else {
+              c.abort(c.enclosingPosition, "Exposed method takes argument of unsupported type")
+            }
+          })
+          cq"($modelName, $methodName) => play.api.libs.json.Json.toJson($daoSymbol.$methodSymbol(..$args).list()(s).toArray.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName))"
+        })
+      })
+
+    val tree = q"(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session) => (model, method) match { case ..$cases }"
+    // println(tree)
     c.Expr(tree)
   }
 }
