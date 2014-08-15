@@ -69,4 +69,9 @@ class BeerBrands(tag: Tag) extends Table[BeerBrand](tag, "beer") {
 
 object BeerBrands extends DAO[BeerBrand, BeerBrands] {
   val query = TableQuery[BeerBrands]
+
+  @expose
+  def findStronger(strength: Double) = {
+    query.filter(_.strength >= strength)
+  }
 }
