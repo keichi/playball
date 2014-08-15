@@ -364,7 +364,8 @@ object Macros {
             } else if (argType =:= typeOf[DateTime]) {
               q"$common.getOrElse(new DateTime)"
             } else if (argType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
-              q"$common.getOrElse($argType.values.first)"
+              val enum = argType.asInstanceOf[TypeRefApi].pre.termSymbol
+              q"$common.getOrElse($enum.values.firstKey)"
             } else if (argType <:< typeOf[Option[_]]) {
               q"$common.getOrElse(None)"
             } else {
@@ -376,7 +377,6 @@ object Macros {
       })
 
     val tree = q"(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session) => (model, method) match { case ..$cases }"
-    // println(tree)
     c.Expr(tree)
   }
 }
