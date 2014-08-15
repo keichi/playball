@@ -12,8 +12,10 @@ object Duck {
   // モデルクラスが実装すべきメソッド・フィールド
   type Model[A] = {
     val id: Option[Long]
-    val updatedAt: DateTime
+    val createdBy: Option[Long]
+    val updatedBy: Option[Long]
     val createdAt: DateTime
+    val updatedAt: DateTime
     def productIterator: Iterator[Any]
   }
 
