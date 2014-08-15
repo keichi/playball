@@ -3,9 +3,6 @@ import play.api.mvc.{Handler, RequestHeader}
 import play.api.Play.current
 import play.api.db.slick._
 
-import scala.reflect.runtime.currentMirror
-import scala.reflect.runtime.universe._
-
 import models._
 import play.boy.dao._
 
@@ -44,6 +41,8 @@ object Global extends GlobalSettings {
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
+    import play.boy.utils.StringUtils._
+
     if (request.path.startsWith("/api/")) {
       lazy val regex = """/api/([^/]+)(/([^/]+))?/?""".r
       val regex(model, _, id) = request.path
@@ -53,11 +52,12 @@ object Global extends GlobalSettings {
         } else {
           request.method match {
             case "GET" if id == null => Some(controllers.REST.index(model))
-            case "GET" => Some(controllers.REST.get(model, id.toLong))
             case "POST" if id != null => Some(controllers.REST.rpc(model, id))
-            case "POST" => Some(controllers.REST.create(model))
-            case "PUT" if id  != null => Some(controllers.REST.update(model, id.toLong))
-            case "DELETE" => Some(controllers.REST.delete(model, id.toLong))
+            case "POST" if id == null => Some(controllers.REST.create(model))
+
+            case "GET" if !id.toLongOpt.isEmpty => Some(controllers.REST.get(model, id.toLong))
+            case "PUT" if !id.toLongOpt.isEmpty => Some(controllers.REST.update(model, id.toLong))
+            case "DELETE" if !id.toLongOpt.isEmpty => Some(controllers.REST.delete(model, id.toLong))
             case _ => super.onRouteRequest(request)
           }
         }
