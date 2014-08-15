@@ -10,7 +10,7 @@ import com.github.tototoshi.csv.{CSVReader, CSVWriter}
 // ダックタイピング用のstructural typeをまとめたクラス
 object Duck {
   // モデルクラスが実装すべきメソッド・フィールド
-  type Model[A] = {
+  type Model = {
     val id: Option[Long]
     val createdBy: Option[Long]
     val updatedBy: Option[Long]
@@ -37,7 +37,7 @@ object Util {
 }
 
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
-abstract class DAO[A <: Duck.Model[A]: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
+abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   val query: TableQuery[B]
 
   private lazy val classMirror = currentMirror.reflectClass(typeOf[A].typeSymbol.asClass)
