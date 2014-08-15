@@ -319,9 +319,9 @@ object Macros {
     c.Expr(tree)
   }
 
-  def handleRPC: ((String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => JsValue) = macro handleRPCImpl
+  def handleRPC: ((String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => Option[JsValue]) = macro handleRPCImpl
 
-  def handleRPCImpl(c: Context): c.Expr[(String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => JsValue] = {
+  def handleRPCImpl(c: Context): c.Expr[(String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => Option[JsValue]] = {
     import c.universe._
     import c.universe.Flag._
 
@@ -372,8 +372,8 @@ object Macros {
               c.abort(c.enclosingPosition, "Exposed method takes argument of unsupported type")
             }
           })
-          cq"($modelName, $methodName) => play.api.libs.json.Json.toJson($daoSymbol.$methodSymbol(..$args).list()(s).toArray.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName))"
-        })
+          cq"($modelName, $methodName) => Some(play.api.libs.json.Json.toJson($daoSymbol.$methodSymbol(..$args).list()(s).toArray.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName)))"
+        }).toList :+ cq"_ => None"
       })
 
     val tree = q"(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session) => (model, method) match { case ..$cases }"

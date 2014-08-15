@@ -155,7 +155,11 @@ object REST extends Controller {
   }
 
   def rpc(model: String, method: String) = DBAction(parse.json) { implicit rs =>
-    val JsObject(fields) = rs.request.body
-    Ok(handleRPC(model, method, fields.toMap, rs.dbSession))
+    rs.request.body match {
+      case JsObject(fields) => handleRPC(model, method, fields.toMap, rs.dbSession)
+                                .map(json => Ok(json))
+                                .getOrElse(BadRequest(Json.toJson(Map("message" -> "No matching model or method."))))
+      case _ => BadRequest(Json.toJson(Map("message" -> "Request JSON is malformed.")))
+    }
   }
 }
