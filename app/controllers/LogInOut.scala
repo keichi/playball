@@ -32,11 +32,13 @@ object LogInOut extends Controller {
       .flatMap(user => {
         user.id match {
           case Some(id) => {
-            val sessionToken = Crypto.generateToken
-            Cache.set(s"session.$sessionToken", user.id)
+            val token = Crypto.generateToken
+            Cache.set(s"session.$token", id)
 
             Some(Redirect(routes.Application.index).flashing(
               "success" -> s"ログインしました。ようこそ${user.name}さん。"
+            ).withSession(
+              rs.session + ("token", token)
             ))
           }
           case _ => None

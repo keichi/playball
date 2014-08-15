@@ -10,8 +10,9 @@ import play.boy.dao._
 import play.boy.annotation._
 import play.boy.types._
 import play.boy.types.joda._
+import play.boy.auth._
 
-object Role extends Enum {
+object Role extends Enum with RoleLike {
   type Role = Value
   val Administrator = Value("管理者")
   val NormalUser = Value("一般ユーザ")
@@ -40,7 +41,7 @@ case class User(
   updatedBy: Option[Long] = None,
   createdAt: DateTime = new DateTime,
   updatedAt: DateTime = new DateTime
-)
+) extends UserLike
 
 object User {
   import play.boy.types.json._
@@ -65,13 +66,16 @@ class Users(tag: Tag) extends Table[User](tag, "user") {
   def * = (id.?, name, username, mail, role, zip, address, password, hashed, createdBy, updatedBy, createdAt, updatedAt) <> ((User.apply _).tupled, User.unapply _)
 }
 
-object Users extends DAO[User, Users] {
+object Users extends DAO[User, Users] with UserDAOLike {
   val query = TableQuery[Users]
 
   def findByUsernameAndPassword(username: String, password: String)(implicit s: Session) = {
     query.filter(u => u.username === username && u.password === password).firstOption
   }
 
-  def findBySessionToken(sessionToken: String)(implicit s: Session) = {
+  override def findById(id: Long)(implicit s: Session) = {
+    query.filter(_.id === id).firstOption
   }
+
+  implicit val userDAO = Users
 }

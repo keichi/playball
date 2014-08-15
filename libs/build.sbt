@@ -7,6 +7,7 @@ resolvers += "Typesafe Repository" at "http://repo.typesafe.com/typesafe/release
 scalacOptions ++= Seq("-feature", "-deprecation")
 
 libraryDependencies ++= Seq(
+  cache,
   "org.scala-lang" % "scala-reflect" % "2.10.3",
   "com.typesafe.play" %% "play" % "2.2.3",
   "com.typesafe.slick" %% "slick" % "2.0.0",
