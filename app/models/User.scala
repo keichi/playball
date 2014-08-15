@@ -67,4 +67,11 @@ class Users(tag: Tag) extends Table[User](tag, "user") {
 
 object Users extends DAO[User, Users] {
   val query = TableQuery[Users]
+
+  def findByUsernameAndPassword(username: String, password: String)(implicit s: Session) = {
+    query.filter(u => u.username === username && u.password === password).firstOption
+  }
+
+  def findBySessionToken(sessionToken: String)(implicit s: Session) = {
+  }
 }

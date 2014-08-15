@@ -8,11 +8,11 @@
     <form role="form" action="@routes.LogInOut.authenticate" method="POST">
       <div class="form-group">
         <label for="txtUsername">ユーザ名</label>
-        <input type="text" class="form-control" id="txtUsername" placeholder="ユーザ名を入力">
+        <input type="text" name="username" class="form-control" id="txtUsername" placeholder="ユーザ名を入力">
       </div>
       <div class="form-group">
         <label for="txtPassword">パスワード</label>
-        <input type="password" class="form-control" id="txtPassword" placeholder="パスワードを入力">
+        <input type="password" name="password" class="form-control" id="txtPassword" placeholder="パスワードを入力">
       </div>
       <input type="submit" class="btn btn-sm btn-default" value="ログイン">
     </form>
