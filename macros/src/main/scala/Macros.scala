@@ -373,8 +373,8 @@ object Macros {
             }
           })
           cq"($modelName, $methodName) => Some(play.api.libs.json.Json.toJson($daoSymbol.$methodSymbol(..$args).list()(s).toArray.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName)))"
-        }).toList :+ cq"_ => None"
-      })
+        })
+      }).toList :+ cq"_ => None"
 
     val tree = q"(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session) => (model, method) match { case ..$cases }"
     c.Expr(tree)
