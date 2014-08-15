@@ -147,5 +147,42 @@ class RESTSpec extends Specification with JsonMatchers {
       charset(result) must beSome("utf-8")
       contentType(result) must beSome("application/json")
     }
+
+    "handle RPC request with one argument" in new WithApplication {
+      val result = route(
+        FakeRequest(POST, "/api/beerbrand/findStronger")
+        .withHeaders(("Content-Type", "application/json"))
+        .withJsonBody(Json.parse("""{
+          "strength":5.5
+        }"""))
+      ).get
+
+      val json = Json.parse(contentAsString(result))
+      json must beAnInstanceOf[JsArray]
+      json.asInstanceOf[JsArray].value.size must equalTo(1)
+
+      val str = contentAsString(result)
+      str must /#(0) /("strength" -> (be_>(5.0) ^^ ((_:String).toDouble)))
+    }
+
+    "handle RPC request with two arguments" in new WithApplication {
+      val result = route(
+        FakeRequest(POST, "/api/beerbrand/findByStyleAndCountry")
+        .withHeaders(("Content-Type", "application/json"))
+        .withJsonBody(Json.parse("""{
+          "style":"ピルスナー",
+          "country":"Japan"
+        }"""))
+      ).get
+
+      val json = Json.parse(contentAsString(result))
+      json must beAnInstanceOf[JsArray]
+      json.asInstanceOf[JsArray].value.size must equalTo(1)
+
+      val str = contentAsString(result)
+      str must /#(0) / ("name" -> "Asahi Super Dry")
+      str must /#(0) / ("style" -> "ピルスナー")
+      str must /#(0) / ("country" -> "Japan")
+    }
   }
 }
