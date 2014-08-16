@@ -6,6 +6,7 @@ import scala.language.reflectiveCalls
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
+import play.boy.auth.Auth
 
 // ダックタイピング用のstructural typeをまとめたクラス
 object Duck {
@@ -79,11 +80,23 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
   }
 
   def insert(item: A)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Long = {
+    val newItem = updateField(item, Map(
+      "createdBy" -> Auth.currentId,
+      "updatedBy" -> Auth.currentId
+    ))
+
     (query returning query.map(_.id)) += item
   }
 
   def insertAll(items: Iterable[A])(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Option[Int] = {
-    query ++= items
+    val newItems = items.map(
+      item => updateField(item, Map(
+        "createdBy" -> Auth.currentId,
+        "updatedBy" -> Auth.currentId
+      ))
+    )
+
+    query ++= newItems
   }
 
   def insertTypeUnsafe(item: Any)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Long = {
@@ -91,7 +104,7 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
   }
 
   def create(args: Any*)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Long = {
-    val item = constructorMirror((args :+ None :+ None :+ new DateTime :+ new DateTime ):_*).asInstanceOf[A]
+    val item = constructorMirror((args :+ Auth.currentId :+ Auth.currentId :+ new DateTime :+ new DateTime ):_*).asInstanceOf[A]
 
     (query returning query.map(_.id)) += item
   }
@@ -194,7 +207,11 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
   def findByPK(id: Long)(implicit s: Session): Option[A] = findById(id)
 
   def update(id: Long, item: A)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session(), ct: scala.reflect.ClassTag[A]) = {
-    val newItem = updateField(item, Map("id" -> Some(id), "updatedAt" -> new DateTime))
+    val newItem = updateField(item, Map(
+      "id" -> Some(id),
+      "updatedAt" -> new DateTime,
+      "updatedBy" -> Auth.currentId
+    ))
 
     query.where(_.id === id).update(newItem)
   }
