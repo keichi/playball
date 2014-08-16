@@ -78,19 +78,19 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
     Query(query.length).first
   }
 
-  def insert(item: A)(implicit s: Session): Long = {
+  def insert(item: A)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Long = {
     (query returning query.map(_.id)) += item
   }
 
-  def insertAll(items: Iterable[A])(implicit s: Session): Option[Int] = {
+  def insertAll(items: Iterable[A])(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Option[Int] = {
     query ++= items
   }
 
-  def insertTypeUnsafe(item: Any)(implicit s: Session): Long = {
+  def insertTypeUnsafe(item: Any)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Long = {
     insert(item.asInstanceOf[A])
   }
 
-  def create(args: Any*)(implicit s: Session): Long = {
+  def create(args: Any*)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Long = {
     val item = constructorMirror((args :+ None :+ None :+ new DateTime :+ new DateTime ):_*).asInstanceOf[A]
 
     (query returning query.map(_.id)) += item
@@ -162,7 +162,7 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
     }
   }
 
-  def fromCSV(csv: String)(implicit s: Session): Unit = {
+  def fromCSV(csv: String)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Unit = {
     // StringReaderは閉じなくてよいらしい
     val sr = new java.io.StringReader(csv)
     val types = paramSymbols.map(_.typeSignature)
@@ -193,13 +193,13 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
 
   def findByPK(id: Long)(implicit s: Session): Option[A] = findById(id)
 
-  def update(id: Long, item: A)(implicit s: Session, ct: scala.reflect.ClassTag[A]) = {
+  def update(id: Long, item: A)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session(), ct: scala.reflect.ClassTag[A]) = {
     val newItem = updateField(item, Map("id" -> Some(id), "updatedAt" -> new DateTime))
 
     query.where(_.id === id).update(newItem)
   }
 
-  def updateTypeUnsafe(id: Long, item: Any)(implicit s: Session) = {
+  def updateTypeUnsafe(id: Long, item: Any)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()) = {
     update(id, item.asInstanceOf[A])
   }
 
