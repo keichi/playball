@@ -29,21 +29,18 @@ object LogInOut extends Controller {
     val (username, password) = loginForm.bindFromRequest.get
 
     Users.findByUsernameAndPassword(username, password)
-      .flatMap(user => {
-        user.id match {
-          case Some(id) => {
-            val token = Crypto.generateToken
-            Cache.set(s"session.$token", id)
+      .flatMap(user =>
+        user.id.map(id => {
+          val token = Crypto.generateToken
+          Cache.set(s"session.$token", id)
 
-            Some(Redirect(routes.Application.index).flashing(
-              "success" -> s"ログインしました。ようこそ${user.name}さん。"
-            ).withSession(
-              rs.session + ("token", token)
-            ))
-          }
-          case _ => None
-        }
-      })
+          Redirect(routes.Application.index).flashing(
+            "success" -> s"ログインしました。ようこそ${user.name}さん。"
+          ).withSession(
+            rs.session + ("token", token)
+          )
+        })
+      )
       .getOrElse(
         Redirect(routes.LogInOut.login).flashing(
           "error" -> s"ログインできませんでした。"
@@ -52,11 +49,11 @@ object LogInOut extends Controller {
   }
 
   def logout = Action { implicit r =>
-    r.session.get("token").flatMap(token => {
+    r.session.get("token").map(token => {
       Cache.remove(s"session.$token")
-      Some(Redirect(routes.Application.index).flashing(
+      Redirect(routes.Application.index).flashing(
         "success" -> "ログアウトしました。"
-      ).withSession(r.session - "token"))
+      ).withSession(r.session - "token")
     }).getOrElse(
       Redirect(routes.LogInOut.login).flashing(
         "error" -> s"ログインしていません。"
