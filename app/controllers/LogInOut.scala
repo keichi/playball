@@ -21,7 +21,7 @@ object LogInOut extends Controller {
     )
   )
 
-  def login = Action { implicit s =>
+  def login = Action { implicit r =>
     Ok(views.html.login())
   }
 
@@ -51,9 +51,16 @@ object LogInOut extends Controller {
       )
   }
 
-  def logout = Action { implicit s =>
-    Redirect(routes.Application.index).flashing(
-      "success" -> "ログアウトしました。"
+  def logout = Action { implicit r =>
+    r.session.get("token").flatMap(token => {
+      Cache.remove(s"session.$token")
+      Some(Redirect(routes.Application.index).flashing(
+        "success" -> "ログアウトしました。"
+      ).withSession(r.session - "token"))
+    }).getOrElse(
+      Redirect(routes.LogInOut.login).flashing(
+        "error" -> s"ログインしていません。"
+      )
     )
   }
 }
