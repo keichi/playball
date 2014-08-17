@@ -12,6 +12,7 @@ import play.api.Play.current
 
 import views._
 import models.Users
+import play.boy.auth._
 
 object LogInOut extends Controller {
   val loginForm = Form(
@@ -28,24 +29,30 @@ object LogInOut extends Controller {
   def authenticate = DBAction { implicit rs =>
     val (username, password) = loginForm.bindFromRequest.get
 
-    Users.findByUsernameAndPassword(username, password)
-      .flatMap(user =>
-        user.id.map(id => {
-          val token = Crypto.generateToken
-          Cache.set(s"session.$token", id)
+    if (Auth.isLoggedIn) {
+      Redirect(routes.Application.index).flashing(
+        "info" -> "すでにログインしています。"
+      ).withSession(rs.session)
+    } else {
+      Users.findByUsernameAndPassword(username, password)
+        .flatMap(user =>
+          user.id.map(id => {
+            val token = Crypto.generateToken
+            Cache.set(s"session.$token", id)
 
-          Redirect(routes.Application.index).flashing(
-            "success" -> s"ログインしました。ようこそ${user.name}さん。"
-          ).withSession(
-            rs.session + ("token", token)
-          )
-        })
-      )
-      .getOrElse(
-        Redirect(routes.LogInOut.login).flashing(
-          "error" -> s"ログインできませんでした。"
+            Redirect(routes.Application.index).flashing(
+              "success" -> s"ログインしました。ようこそ${user.name}さん。"
+            ).withSession(
+              rs.session + ("token", token)
+            )
+          })
         )
+        .getOrElse(
+          Redirect(routes.LogInOut.login).flashing(
+            "error" -> s"ログインできませんでした。"
+          )
       )
+    }
   }
 
   def logout = Action { implicit r =>
