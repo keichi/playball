@@ -17,6 +17,10 @@ trait UserDAOLike {
 
 @implicitNotFound("Both DB session and HTTP session is required.")
 object Auth {
+  def isLoggedIn(implicit ds: play.api.db.slick.Session, s: play.api.mvc.Session): Boolean = {
+    currentId.isDefined
+  }
+
   def currentUser(implicit dao: UserDAOLike, ds: play.api.db.slick.Session, s: play.api.mvc.Session): Option[UserLike] = {
     currentId.flatMap(id => dao.findById(id))
   }
