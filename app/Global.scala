@@ -55,9 +55,9 @@ object Global extends GlobalSettings {
             case "POST" if id != null => Some(controllers.REST.rpc(model, id))
             case "POST" if id == null => Some(controllers.REST.create(model))
 
-            case "GET" if !id.toLongOpt.isEmpty => Some(controllers.REST.get(model, id.toLong))
-            case "PUT" if !id.toLongOpt.isEmpty => Some(controllers.REST.update(model, id.toLong))
-            case "DELETE" if !id.toLongOpt.isEmpty => Some(controllers.REST.delete(model, id.toLong))
+            case "GET" if id.toLongOpt.isDefined => Some(controllers.REST.get(model, id.toLong))
+            case "PUT" if id.toLongOpt.isDefined => Some(controllers.REST.update(model, id.toLong))
+            case "DELETE" if id.toLongOpt.isDefined => Some(controllers.REST.delete(model, id.toLong))
             case _ => super.onRouteRequest(request)
           }
         }
