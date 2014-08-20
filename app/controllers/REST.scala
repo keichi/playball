@@ -11,6 +11,9 @@ import play.boy.dao._
 import play.boy.macros._
 import play.boy.types._
 import play.boy.types.joda._
+import play.boy.auth.Auth
+
+import models.Users._
 
 object REST extends Controller {
   val findDAO = Macros.daoMap.get _
@@ -23,6 +26,12 @@ object REST extends Controller {
 
   val generatePredicate = Macros.generatePredicate
   val generateSorter = Macros.generateSorter
+
+  def currentPermissions(dao: DAO[_, _])(implicit rs: DBSessionRequest[_]) = {
+    Auth.currentRole
+      .flatMap(role => dao.acl.get(role))
+      .getOrElse(dao.aclDefault)
+  }
 
   def index(model: String) = DBAction { implicit rs =>
     findDAO(model).map({ dao =>
@@ -54,7 +63,11 @@ object REST extends Controller {
       }
 
 
-      Ok(handleIndex(model, q4.list.toArray))
+      if (currentPermissions(dao)._1) {
+        Ok(handleIndex(model, q4.list.toArray))
+      } else {
+        Unauthorized(Json.toJson(Map("message" -> s"This operation to $model is not authorized for the current user.")))
+      }
     }).getOrElse(
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
     )
@@ -64,7 +77,12 @@ object REST extends Controller {
     findDAO(model).map({dao =>
       handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
         val id = dao.insertTypeUnsafe(item)
-        Ok(Json.toJson(Map("message" -> s"$model with id:$id created.")))
+
+        if (currentPermissions(dao)._2) {
+          Ok(Json.toJson(Map("message" -> s"$model with id:$id created.")))
+        } else {
+          Unauthorized(Json.toJson(Map("message" -> s"This operation to $model is not authorized for the current user.")))
+        }
       }).getOrElse(
         BadRequest(Json.toJson(Map("message" -> s"Request JSON is malformed.")))
       )
@@ -76,7 +94,11 @@ object REST extends Controller {
   def get(model: String, id: Long) = DBAction { implicit rs =>
     findDAO(model).map({ dao =>
       dao.findById(id).map({ item =>
-        Ok(handleGet(model, item))
+        if (currentPermissions(dao)._1) {
+          Ok(handleGet(model, item))
+        } else {
+          Unauthorized(Json.toJson(Map("message" -> s"This operation to $model is not authorized for the current user.")))
+        }
       }).getOrElse(
         NotFound(Json.toJson(Map("message" -> s"$model with id:$id not found.")))
       )
@@ -90,7 +112,11 @@ object REST extends Controller {
       dao.findById(id).map({ oldItem =>
         handleCreate(model, rs.request.body).asInstanceOf[JsResult[_]] .map({ item =>
           dao.updateTypeUnsafe(id, item)
-          Ok(Json.toJson(Map("message" -> s"$model with id:$id updated.")))
+          if (currentPermissions(dao)._1) {
+            Ok(Json.toJson(Map("message" -> s"$model with id:$id updated.")))
+          } else {
+            Unauthorized(Json.toJson(Map("message" -> s"This operation to $model is not authorized for the current user.")))
+          }
         }).getOrElse(
           BadRequest(Json.toJson(Map("message" -> s"Request JSON is malformed.")))
         )
@@ -105,7 +131,11 @@ object REST extends Controller {
   def delete(model: String, id: Long) = DBAction { implicit rs =>
     findDAO(model).map({ dao =>
       dao.delete(id)
-      Ok(Json.toJson(Map("message" -> s"$model with id:$id deleted.")))
+      if (currentPermissions(dao)._1) {
+        Ok(Json.toJson(Map("message" -> s"$model with id:$id deleted.")))
+      } else {
+        Unauthorized(Json.toJson(Map("message" -> s"This operation to $model is not authorized for the current user.")))
+      }
     }).getOrElse(
       BadRequest(Json.toJson(Map("message" -> s"Model $model not found.")))
     )

@@ -6,8 +6,8 @@ import scala.language.reflectiveCalls
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
-import play.boy.auth.Auth
-import play.boy.annotation.authorize
+import play.boy.auth.{Auth, RoleLike}
+import play.boy.annotation.{authorize, authorizeDefault}
 import play.boy.types.Enum
 
 // ダックタイピング用のstructural typeをまとめたクラス
@@ -55,17 +55,33 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
                 val value = instanceMirror.reflectField(args.head.symbol.asTerm).get
 
                 val read = if (args.length >= 2) args(1) match {
-                  case Literal(Constant(x)) => x
+                  case Literal(Constant(x)) => x.asInstanceOf[Boolean]
                   case _ => false
                 } else false
                 val write = if (args.length >= 3) args(2) match {
-                  case Literal(Constant(x)) => x
+                  case Literal(Constant(x)) => x.asInstanceOf[Boolean]
                   case _ => false
                 } else false
 
-                (value.asInstanceOf[Enum#Value], (read, write))
+                (value.asInstanceOf[RoleLike#Value], (read, write))
               })
               .toMap
+  lazy val aclDefault = typeOf[A].typeSymbol.annotations
+              .find(_.tpe <:< typeOf[authorizeDefault])
+              .map({ a =>
+                val args = a.scalaArgs
+                val read = if (args.length >= 1) args(0) match {
+                  case Literal(Constant(x)) => x.asInstanceOf[Boolean]
+                  case _ => false
+                } else false
+                val write = if (args.length >= 2) args(1) match {
+                  case Literal(Constant(x)) => x.asInstanceOf[Boolean]
+                  case _ => false
+                } else false
+
+                (read, write)
+              })
+              .getOrElse((false, false))
 
   private lazy val classMirror = currentMirror.reflectClass(typeOf[A].typeSymbol.asClass)
 

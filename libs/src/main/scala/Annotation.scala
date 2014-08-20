@@ -7,3 +7,4 @@ import play.boy.auth.RoleLike
 case class label(message: String) extends StaticAnnotation
 case class text(rows: Int) extends StaticAnnotation
 case class authorize(role: RoleLike#Value, read: Boolean, write: Boolean) extends StaticAnnotation
+case class authorizeDefault(read: Boolean, write: Boolean) extends StaticAnnotation
