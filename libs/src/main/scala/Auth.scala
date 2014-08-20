@@ -3,6 +3,8 @@ package play.boy.auth
 import play.api.Play.current
 import play.api.cache.Cache
 import scala.annotation.implicitNotFound
+import play.api.db.slick._
+import play.api.mvc._
 
 trait RoleLike extends Enumeration {
 }
@@ -31,5 +33,25 @@ object Auth {
 
   def currentId(implicit s: play.api.mvc.Session): Option[Long] = {
     s.get("token").flatMap(token => Cache.getAs[Long](s"session.$token"))
+  }
+
+  def Authenticated[A](roles: RoleLike#Value*)(bodyParser: BodyParser[A])(requestHandler: DBSessionRequest[A] => SimpleResult)(implicit dao: UserDAOLike): Action[A] = {
+    DBAction(bodyParser) { rs: DBSessionRequest[A] =>
+      implicit val ds = rs.dbSession
+      implicit val s = rs.session
+
+      currentRole match {
+        case Some(role) if (roles.contains(role) || roles.isEmpty) => requestHandler(rs)
+        case _ => Results.Unauthorized("このページを閲覧する権限がありません。")
+      }
+    }
+  }
+
+  def Authenticated(roles: RoleLike#Value*)(requestHandler: DBSessionRequest[AnyContent] => SimpleResult)(implicit dao: UserDAOLike): Action[AnyContent] = {
+    Authenticated[AnyContent](roles:_*)(BodyParsers.parse.anyContent)(requestHandler)
+  }
+
+  def Authenticated(requestHandler: DBSessionRequest[AnyContent] => SimpleResult)(implicit dao: UserDAOLike): Action[AnyContent] = {
+    Authenticated[AnyContent]()(BodyParsers.parse.anyContent)(requestHandler)
   }
 }
