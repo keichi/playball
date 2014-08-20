@@ -7,6 +7,8 @@ import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
 import play.boy.auth.Auth
+import play.boy.annotation.authorize
+import play.boy.types.Enum
 
 // ダックタイピング用のstructural typeをまとめたクラス
 object Duck {
@@ -39,7 +41,31 @@ object Util {
 
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
 abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
+  type Model = A
+  type Table = B
+
   val query: TableQuery[B]
+  lazy val acl = typeOf[A].typeSymbol.annotations
+              .filter(_.tpe <:< typeOf[authorize])
+              .map({ a =>
+                val args = a.scalaArgs
+                val enumType = args.head.tpe.asInstanceOf[TypeRefApi].pre
+                val moduleMirror = currentMirror.reflectModule(enumType.termSymbol.asModule)
+                val instanceMirror = currentMirror.reflect(moduleMirror.instance)
+                val value = instanceMirror.reflectField(args.head.symbol.asTerm).get
+
+                val read = if (args.length >= 2) args(1) match {
+                  case Literal(Constant(x)) => x
+                  case _ => false
+                } else false
+                val write = if (args.length >= 3) args(2) match {
+                  case Literal(Constant(x)) => x
+                  case _ => false
+                } else false
+
+                (value.asInstanceOf[Enum#Value], (read, write))
+              })
+              .toMap
 
   private lazy val classMirror = currentMirror.reflectClass(typeOf[A].typeSymbol.asClass)
 

@@ -5,8 +5,9 @@ import play.api.cache.Cache
 import scala.annotation.implicitNotFound
 import play.api.db.slick._
 import play.api.mvc._
+import play.boy.types.Enum
 
-trait RoleLike extends Enumeration {
+trait RoleLike extends Enum {
 }
 
 trait UserLike {
