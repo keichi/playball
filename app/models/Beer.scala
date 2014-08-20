@@ -26,6 +26,7 @@ import BeerStyle.BeerStyle
 
 // case classをTable[A]にmappingして使うことを前提にしているので、
 // まずはcase classを定義する。
+@authorizeDefault(true, true)
 case class BeerBrand(
   id: Option[Long],
   @label("名前")
