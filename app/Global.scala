@@ -4,7 +4,7 @@ import play.api.Play.current
 import play.api.db.slick._
 
 import models._
-import play.boy.dao._
+import play.boy.dao.DAO
 
 object Global extends GlobalSettings {
 

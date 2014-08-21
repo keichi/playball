@@ -5,8 +5,8 @@ import scala.slick.lifted.Tag
 
 import org.joda.time.DateTime
 
-import play.api.libs.json._
-import play.boy.dao._
+import play.api.libs.json.Json
+import play.boy.dao.DAO
 import play.boy.annotation._
 import play.boy.types._
 import play.boy.types.joda._
