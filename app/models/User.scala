@@ -70,7 +70,30 @@ object Users extends DAO[User, Users] with UserDAOLike {
   val query = TableQuery[Users]
 
   def findByUsernameAndPassword(username: String, password: String)(implicit s: Session) = {
-    query.filter(u => u.username === username && u.password === password).firstOption
+    val user = query.filter(u => u.username === username).firstOption
+
+    user.flatMap(u => {
+      if (u.hashed && u.password == hashPassword(password)
+        || !u.hashed && u.password == password) {
+        Some(u)
+      } else {
+        None
+      }
+    })
+  }
+
+  private def hashPassword(password: String) = {
+    val md = java.security.MessageDigest.getInstance("SHA-1")
+    md.update(password.getBytes)
+    play.api.Play.current.configuration.getString("application.secret")
+    .foreach(salt => md.update(salt.getBytes))
+
+    md.digest.foldLeft("")((s, b) => s + "%02x".format(if(b < 0) b + 256 else b))
+  }
+
+  def changePassword(username: String, oldPassword: String, newPassword: String)(implicit s: Session) = {
+    query.filter(u => u.username === username && u.password === oldPassword)
+    .map(r => (r.password, r.hashed)).update((hashPassword(newPassword), true))
   }
 
   override def findById(id: Long)(implicit s: Session) = {
