@@ -1,10 +1,8 @@
 package controllers
 
-import play.api._
 import play.api.mvc._
 import play.api.db.slick._
 import play.api.libs.json._
-import play.api.mvc.BodyParsers.parse
 import play.api.db.slick.Config.driver.simple._
 
 import play.boy.dao._

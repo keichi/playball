@@ -14,7 +14,6 @@ object Macros {
 
   def handleIndexImpl(c: Context): c.Expr[(String, Array[_]) => JsValue] = {
     import c.universe._
-    import c.universe.Flag._
 
     val cases = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)
@@ -39,7 +38,6 @@ object Macros {
 
   def handleGetImpl(c: Context): c.Expr[(String, Any) => JsValue] = {
     import c.universe._
-    import c.universe.Flag._
 
     val cases = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)
@@ -63,7 +61,6 @@ object Macros {
 
   def daoMapImpl(c: Context): c.Expr[Map[String, DAO[_, _]]] = {
     import c.universe._
-    import c.universe.Flag._
 
     val tuples = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)
@@ -85,7 +82,6 @@ object Macros {
 
   def modelTmpImpl(c: Context)(originalSymbol: c.universe.Symbol, colType: c.universe.Type, name: String, label: c.universe.Tree, optional: Boolean): c.universe.Tree = {
     import c.universe._
-    import c.universe.Flag._
 
     if (colType =:= typeOf[String]) {
       val rows = originalSymbol.annotations
@@ -132,7 +128,6 @@ object Macros {
 
   def modelMetaMapImpl(c: Context): c.Expr[Map[String, ModelMeta]] = {
     import c.universe._
-    import c.universe.Flag._
 
     val tuples = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)
@@ -171,7 +166,6 @@ object Macros {
 
   def handleCreateImpl(c: Context): c.Expr[(String, JsValue) => Any] = {
     import c.universe._
-    import c.universe.Flag._
 
     val cases = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)
@@ -322,7 +316,6 @@ object Macros {
 
   def handleRPCImpl(c: Context): c.Expr[(String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => Option[JsValue]] = {
     import c.universe._
-    import c.universe.Flag._
 
     val cases = c.mirror.staticPackage("models").typeSignature.members
       .filter(_.isModule)

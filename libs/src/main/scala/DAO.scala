@@ -8,7 +8,6 @@ import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
 import play.boy.auth.{Auth, RoleLike}
 import play.boy.annotation.{authorize, authorizeDefault}
-import play.boy.types.Enum
 
 // ダックタイピング用のstructural typeをまとめたクラス
 object Duck {
