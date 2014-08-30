@@ -247,7 +247,7 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
 
   def findByPK(id: Long)(implicit s: Session): Option[A] = findById(id)
 
-  def update(id: Long, item: A)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session(), ct: scala.reflect.ClassTag[A]) = {
+  def update(id: Long, item: A)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session(), ct: scala.reflect.ClassTag[A]): Int = {
     val newItem = updateField(item, Map(
       "id" -> Some(id),
       "updatedAt" -> new DateTime,
@@ -257,11 +257,11 @@ abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table
     query.where(_.id === id).update(newItem)
   }
 
-  def updateTypeUnsafe(id: Long, item: Any)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()) = {
+  def updateTypeUnsafe(id: Long, item: Any)(implicit ds: Session, s: play.api.mvc.Session = play.api.mvc.Session()): Int = {
     update(id, item.asInstanceOf[A])
   }
 
-  def delete(id: Long)(implicit s: Session) {
+  def delete(id: Long)(implicit s: Session): Int = {
     query.where(_.id === id).delete
   }
 }
