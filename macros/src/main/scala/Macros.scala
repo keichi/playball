@@ -312,43 +312,57 @@ object RESTMacro {
           val TypeRef(_, _, List(modelType, tableType)) = baseType
           val tableName = tableType.typeSymbol
 
-          val ctor = modelType.declarations
-            .filter(_.isMethod)
-            .map(_.asMethod)
-            .find(_.isConstructor)
-            .get
-
-          val cols = ctor.asMethod.paramss.head
-            .filter(_.isTerm)
-            .flatMap({ m => 
-              val colType = m.typeSignature
-              val colName = m.name.toTermName
-
-              val (opNames, arg) = generatePredicateParser(colType)
-
-              lazy val opMethodMap = Map(
-                "eq" -> "$eq$eq$eq",
-                "neq" -> "$eq$bang$eq",
-                "gt" -> "$greater",
-                "lt" -> "$less",
-                "ge" -> "$greater$eq",
-                "le" -> "$less$eq",
-                "like" -> "like"
-              )
-
-              opNames.map({opName =>
-                val predName = colName.decoded + "_" + opName
-                val op = newTermName(opMethodMap.get(opName).get)
-
-                cq"$predName => x.$colName.$op($arg)"
-              })
-            }).toList :+ cq"_ => true"
-
-
-          cq"x:$tableName => pred match { case ..$cols }"
+          val methodName = newTermName(s"generatePredicateFor${tableName.name.decoded}")
+          cq"x:$tableName => $methodName(x, pred, arg)"
         }).toList
 
       q"private def generatePredicate(row: scala.slick.lifted.AbstractTable[_], pred: String, arg: String): Column[Boolean] = row match { case ..$models }"
+    }
+
+    def generatePredicateForImpl = {
+      c.mirror.staticPackage("models").typeSignature.members
+      .filter(_.isModule)
+      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+      .map(moduleSymbol => {
+        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+        val TypeRef(_, _, List(modelType, tableType)) = baseType
+        val tableName = tableType.typeSymbol
+
+        val ctor = modelType.declarations
+          .filter(_.isMethod)
+          .map(_.asMethod)
+          .find(_.isConstructor)
+          .get
+
+        val cols = ctor.asMethod.paramss.head
+          .filter(_.isTerm)
+          .flatMap({ m => 
+            val colType = m.typeSignature
+            val colName = m.name.toTermName
+
+            val (opNames, arg) = generatePredicateParser(colType)
+
+            lazy val opMethodMap = Map(
+              "eq" -> "$eq$eq$eq",
+              "neq" -> "$eq$bang$eq",
+              "gt" -> "$greater",
+              "lt" -> "$less",
+              "ge" -> "$greater$eq",
+              "le" -> "$less$eq",
+              "like" -> "like"
+            )
+
+            opNames.map({opName =>
+              val predName = colName.decoded + "_" + opName
+              val op = newTermName(opMethodMap.get(opName).get)
+
+              cq"$predName => x.$colName.$op($arg)"
+            })
+          }).toList :+ cq"_ => true"
+
+        val methodName = newTermName(s"generatePredicateFor${tableName.name.decoded}")
+        q"private def $methodName(x: $tableName, pred: String, arg: String): Column[Boolean] = pred match { case ..$cols }"
+      }).toList
     }
 
     def modifyModule(moduleDef: ModuleDef) = {
@@ -359,7 +373,8 @@ object RESTMacro {
         handleCreateImpl,
         generateSorterImpl,
         generatePredicateImpl
-      )
+      ) ++ generatePredicateForImpl
+
       val q"object $obj extends ..$bases { ..$body }" = moduleDef
       q"""
         object $obj extends ..$bases {
