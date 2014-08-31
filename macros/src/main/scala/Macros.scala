@@ -144,7 +144,7 @@ object RESTMacro {
         })
 
 
-      q"def handleIndex(x: String, y: Array[_]): JsValue = x match { case ..$cases }"
+      q"private def handleIndex(x: String, y: Array[_]): JsValue = x match { case ..$cases }"
     }
 
     def handleGetImpl = {
@@ -163,7 +163,7 @@ object RESTMacro {
           cq"$caseName => play.api.libs.json.Json.toJson(y.asInstanceOf[$modelType])($modelSymbol.$writesName)"
         })
 
-      q"def handleGet(x: String, y: Any): JsValue = x match { case ..$cases }"
+      q"private def handleGet(x: String, y: Any): JsValue = x match { case ..$cases }"
     }
 
     def handleRPCImpl = {
@@ -218,7 +218,7 @@ object RESTMacro {
           })
         }).toList :+ cq"_ => None"
 
-      q"def handleRPC(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session): Option[JsValue] = (model, method) match { case ..$cases }"
+      q"private def handleRPC(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session): Option[JsValue] = (model, method) match { case ..$cases }"
     }
 
     def handleCreateImpl = {
@@ -237,7 +237,7 @@ object RESTMacro {
           cq"$caseName => play.api.libs.json.Json.fromJson(y)($modelSymbol.$writesName)"
         })
 
-      q"def handleCreate(x: String, y: play.api.libs.json.JsValue): Any = x match { case ..$cases }"
+      q"private def handleCreate(x: String, y: play.api.libs.json.JsValue): Any = x match { case ..$cases }"
     }
 
     def generateSorterImpl = {
@@ -271,7 +271,7 @@ object RESTMacro {
           cq"x:$tableName => col match { case ..$cols }"
         }).toList
 
-      q"def generateSorter(row: scala.slick.lifted.AbstractTable[_], col: String, direction: Boolean): scala.slick.lifted.ColumnOrdered[_] = row match { case ..$models }"
+      q"private def generateSorter(row: scala.slick.lifted.AbstractTable[_], col: String, direction: Boolean): scala.slick.lifted.ColumnOrdered[_] = row match { case ..$models }"
     }
 
     def generatePredicateParser(colType: c.Type) = {
@@ -348,7 +348,7 @@ object RESTMacro {
           cq"x:$tableName => pred match { case ..$cols }"
         }).toList
 
-      q"def generatePredicate(row: scala.slick.lifted.AbstractTable[_], pred: String, arg: String): Column[Boolean] = row match { case ..$models }"
+      q"private def generatePredicate(row: scala.slick.lifted.AbstractTable[_], pred: String, arg: String): Column[Boolean] = row match { case ..$models }"
     }
 
     def modifyModule(moduleDef: ModuleDef) = {
