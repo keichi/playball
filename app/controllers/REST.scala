@@ -13,17 +13,10 @@ import play.boy.auth.Auth
 
 import models.Users._
 
+@rest
 object REST extends Controller {
   val findDAO = Macros.daoMap.get _
   val findMeta = Macros.modelMetaMap.get _
-
-  val handleIndex = Macros.handleIndex
-  val handleGet = Macros.handleGet
-  val handleCreate = Macros.handleCreate
-  val handleRPC = Macros.handleRPC
-
-  val generatePredicate = Macros.generatePredicate
-  val generateSorter = Macros.generateSorter
 
   def currentPermissions(dao: DAO[_, _])(implicit rs: DBSessionRequest[_]) = {
     Auth.currentRole

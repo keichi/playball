@@ -1,62 +1,16 @@
 package play.boy.macros
 
 import language.experimental.macros
-import scala.reflect.macros.Context
+import scala.reflect.macros._
 import org.joda.time.DateTime
 import play.api.libs.json._
 import scala.slick.lifted.{AbstractTable, Column, ColumnOrdered}
+import scala.annotation.StaticAnnotation
 
 import play.boy.dao._
 import play.boy.types._
 
 object Macros {
-  def handleIndex: ((String, Array[_]) => JsValue) = macro handleIndexImpl
-
-  def handleIndexImpl(c: Context): c.Expr[(String, Array[_]) => JsValue] = {
-    import c.universe._
-
-    val cases = c.mirror.staticPackage("models").typeSignature.members
-      .filter(_.isModule)
-      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
-      .map(moduleSymbol => {
-        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
-        val TypeRef(_, _, List(modelType, _)) = baseType
-
-        val modelSymbol = modelType.typeSymbol.companionSymbol
-        val caseName = modelSymbol.name.decoded.toLowerCase
-        val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
-        val writesName = newTermName(writesSymbol.name.toString.trim)
-
-        cq"$caseName => play.api.libs.json.Json.toJson(y.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName))"
-      })
-
-
-    c.Expr(q"(x: String, y: Array[_]) => x match { case ..$cases }")
-  }
-
-  def handleGet: ((String, Any) => JsValue) = macro handleGetImpl
-
-  def handleGetImpl(c: Context): c.Expr[(String, Any) => JsValue] = {
-    import c.universe._
-
-    val cases = c.mirror.staticPackage("models").typeSignature.members
-      .filter(_.isModule)
-      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
-      .map(moduleSymbol => {
-        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
-        val TypeRef(_, _, List(modelType, _)) = baseType
-
-        val modelSymbol = modelType.typeSymbol.companionSymbol
-        val caseName = modelSymbol.name.decoded.toLowerCase
-        val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
-        val writesName = newTermName(writesSymbol.name.toString.trim)
-
-        cq"$caseName => play.api.libs.json.Json.toJson(y.asInstanceOf[$modelType])($modelSymbol.$writesName)"
-      })
-
-    c.Expr(q"(x: String, y: Any) => x match { case ..$cases }")
-  }
-
   def daoMap = macro daoMapImpl
 
   def daoMapImpl(c: Context): c.Expr[Map[String, DAO[_, _]]] = {
@@ -161,214 +115,263 @@ object Macros {
 
     c.Expr(q"scala.collection.immutable.Map(..$tuples)")
   }
+}
 
-  def handleCreate: ((String, JsValue) => Any) = macro handleCreateImpl
+class rest extends StaticAnnotation {
+  def macroTransform(annottees: Any*): Any = macro RESTMacro.impl
+}
 
-  def handleCreateImpl(c: Context): c.Expr[(String, JsValue) => Any] = {
+object RESTMacro {
+  def impl(c: Context)(annottees: c.Expr[Any]*): c.Expr[Any] = {
     import c.universe._
 
-    val cases = c.mirror.staticPackage("models").typeSignature.members
-      .filter(_.isModule)
-      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
-      .map(moduleSymbol => {
-        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
-        val TypeRef(_, _, List(modelType, _)) = baseType
+    def handleIndexImpl = {
+      import c.universe._
 
-        val modelSymbol = modelType.typeSymbol.companionSymbol
-        val caseName = modelSymbol.name.decoded.toLowerCase
-        val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
-        val writesName = newTermName(writesSymbol.name.toString.trim)
+      val cases = c.mirror.staticPackage("models").typeSignature.members
+        .filter(_.isModule)
+        .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+        .map(moduleSymbol => {
+          val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+          val TypeRef(_, _, List(modelType, _)) = baseType
 
-        cq"$caseName => play.api.libs.json.Json.fromJson(y)($modelSymbol.$writesName)"
-      })
+          val modelSymbol = modelType.typeSymbol.companionSymbol
+          val caseName = modelSymbol.name.decoded.toLowerCase
+          val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
+          val writesName = newTermName(writesSymbol.name.toString.trim)
 
-    c.Expr(q"(x: String, y: play.api.libs.json.JsValue) => x match { case ..$cases }")
-  }
-
-  def generatePredicateParser(c: Context)(colType: c.Type): (List[String], c.Tree) = {
-    import c.universe._
-
-    if (colType =:= typeOf[String]) {
-      (List("eq", "neq", "like"), q"arg")
-    } else if (colType =:= typeOf[Boolean]) {
-      (List("eq", "neq"), q"arg.toBoolean")
-    } else if (colType =:= typeOf[Short]) {
-      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toShort")
-    } else if (colType =:= typeOf[Int]) {
-      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toInt")
-    } else if (colType =:= typeOf[Long]) {
-      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toLong")
-    } else if (colType =:= typeOf[Double]) {
-      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toDouble")
-    } else if (colType =:= typeOf[Float]) {
-      (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toFloat")
-    } else if (colType =:= typeOf[DateTime]) {
-      (List("eq", "neq", "gt", "lt", "ge", "le"), q"org.joda.time.DateTime.parse(arg, org.joda.time.format.ISODateTimeFormat.dateTime())")
-    // } else if (colType <:< typeOf[Option[_]]) {
-    //   val (_, inner) = generatePredicateParser(c)(colType.asInstanceOf[TypeRefApi].args.head)
-    //   (List("eq", "neq"), q"$inner")
-    } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
-      val enumType = colType.asInstanceOf[TypeRefApi].pre
-      val enumName = enumType.termSymbol
-      (List("eq", "neq"), q"$enumName.withName(arg)")
-    } else {
-      (List(), null)
-    }
-  }
-
-  def generateSorter: ((AbstractTable[_], String, Boolean) => ColumnOrdered[_])
-    = macro generateSorterImpl
-
-  def generateSorterImpl(c: Context): c.Expr[((AbstractTable[_], String, Boolean) => ColumnOrdered[_])] = {
-    import c.universe._
-
-    val models = c.mirror.staticPackage("models").typeSignature.members
-      .filter(_.isModule)
-      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
-      .map(moduleSymbol => {
-        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
-        val TypeRef(_, _, List(modelType, tableType)) = baseType
-        val tableName = tableType.typeSymbol
-
-        val ctor = modelType.declarations
-          .filter(_.isMethod)
-          .map(_.asMethod)
-          .find(_.isConstructor)
-          .get
-
-        val cols = ctor.asMethod.paramss.head
-          .filter(_.isTerm)
-          .flatMap({ m => 
-            val colName = m.name.toTermName
-            val colNameString = colName.decoded
-
-            Seq(
-              cq"$colNameString if direction => x.$colName.asc",
-              cq"$colNameString if !direction => x.$colName.desc"
-            )
-          }).toList :+ cq"_ => x.id.asc"
-
-
-        cq"x:$tableName => col match { case ..$cols }"
-      }).toList
-
-    val tree = q"(row: scala.slick.lifted.AbstractTable[_], col: String, direction: Boolean) => row match { case ..$models }"
-
-    c.Expr(tree)
-  }
-
-  def generatePredicate: ((AbstractTable[_], String, String) => Column[_])
-    = macro generatePredicateImpl
-
-  def generatePredicateImpl(c: Context): c.Expr[(AbstractTable[_], String, String) => Column[_]] = {
-    import c.universe._
-
-    val models = c.mirror.staticPackage("models").typeSignature.members
-      .filter(_.isModule)
-      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
-      .map(moduleSymbol => {
-        val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
-        val TypeRef(_, _, List(modelType, tableType)) = baseType
-        val tableName = tableType.typeSymbol
-
-        val ctor = modelType.declarations
-          .filter(_.isMethod)
-          .map(_.asMethod)
-          .find(_.isConstructor)
-          .get
-
-        val cols = ctor.asMethod.paramss.head
-          .filter(_.isTerm)
-          .flatMap({ m => 
-            val colType = m.typeSignature
-            val colName = m.name.toTermName
-
-            val (opNames, arg) = generatePredicateParser(c)(colType)
-
-            lazy val opMethodMap = Map(
-              "eq" -> "$eq$eq$eq",
-              "neq" -> "$eq$bang$eq",
-              "gt" -> "$greater",
-              "lt" -> "$less",
-              "ge" -> "$greater$eq",
-              "le" -> "$less$eq",
-              "like" -> "like"
-            )
-
-            opNames.map({opName =>
-              val predName = colName.decoded + "_" + opName
-              val op = newTermName(opMethodMap.get(opName).get)
-
-              cq"$predName => x.$colName.$op($arg)"
-            })
-          }).toList :+ cq"_ => true"
-
-
-        cq"x:$tableName => pred match { case ..$cols }"
-      }).toList
-
-    val tree = q"(row: scala.slick.lifted.AbstractTable[_], pred: String, arg: String) => row match { case ..$models }"
-
-    c.Expr(tree)
-  }
-
-  def handleRPC: ((String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => Option[JsValue]) = macro handleRPCImpl
-
-  def handleRPCImpl(c: Context): c.Expr[(String, String, Map[String, JsValue], play.api.db.slick.Config.driver.simple.Session) => Option[JsValue]] = {
-    import c.universe._
-
-    val cases = c.mirror.staticPackage("models").typeSignature.members
-      .filter(_.isModule)
-      .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
-      .flatMap(daoSymbol => {
-        val baseType = daoSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
-        val TypeRef(_, _, List(modelType, _)) = baseType
-
-        val modelSymbol = modelType.typeSymbol.companionSymbol
-        val modelName = modelSymbol.name.decoded.toLowerCase
-        val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
-        val writesName = newTermName(writesSymbol.name.toString.trim)
-
-        val methods = daoSymbol.typeSignature.members
-          .filter(m => m.name.decoded.endsWith("RPC"))
-          .map(_.asMethod)
-
-        methods.map(methodSymbol => {
-          val methodName = "RPC$".r.replaceAllIn(methodSymbol.name.decoded, "")
-          val args = methodSymbol.paramss.head.map(argSymbol => {
-            val argType = argSymbol.typeSignature
-            val common = q"args.get(${argSymbol.name.decoded}).map(_.as[$argType])"
-
-            if (argType =:= typeOf[String]) {
-              q"""$common.getOrElse("")"""
-            } else if (argType =:= typeOf[Boolean]) {
-              q"$common.getOrElse(false)"
-            } else if (argType =:= typeOf[Short]) {
-              q"$common.getOrElse(0:Short)"
-            } else if (argType =:= typeOf[Int]) {
-              q"$common.getOrElse(0)"
-            } else if (argType =:= typeOf[Long]) {
-              q"$common.getOrElse(0:Long)"
-            } else if (argType =:= typeOf[Double]) {
-              q"$common.getOrElse(0.0)"
-            } else if (argType =:= typeOf[Float]) {
-              q"$common.getOrElse(0:Float)"
-            } else if (argType =:= typeOf[DateTime]) {
-              q"$common.getOrElse(new DateTime)"
-            } else if (argType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
-              val enum = argType.asInstanceOf[TypeRefApi].pre.termSymbol
-              q"$common.getOrElse($enum.values.firstKey)"
-            } else if (argType <:< typeOf[Option[_]]) {
-              q"$common.getOrElse(None)"
-            } else {
-              c.abort(c.enclosingPosition, "Exposed method takes argument of unsupported type")
-            }
-          })
-          cq"($modelName, $methodName) => Some(play.api.libs.json.Json.toJson($daoSymbol.$methodSymbol(..$args).list()(s).toArray.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName)))"
+          cq"$caseName => play.api.libs.json.Json.toJson(y.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName))"
         })
-      }).toList :+ cq"_ => None"
 
-    val tree = q"(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session) => (model, method) match { case ..$cases }"
-    c.Expr(tree)
+
+      q"def handleIndex(x: String, y: Array[_]): JsValue = x match { case ..$cases }"
+    }
+
+    def handleGetImpl = {
+      val cases = c.mirror.staticPackage("models").typeSignature.members
+        .filter(_.isModule)
+        .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+        .map(moduleSymbol => {
+          val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+          val TypeRef(_, _, List(modelType, _)) = baseType
+
+          val modelSymbol = modelType.typeSymbol.companionSymbol
+          val caseName = modelSymbol.name.decoded.toLowerCase
+          val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
+          val writesName = newTermName(writesSymbol.name.toString.trim)
+
+          cq"$caseName => play.api.libs.json.Json.toJson(y.asInstanceOf[$modelType])($modelSymbol.$writesName)"
+        })
+
+      q"def handleGet(x: String, y: Any): JsValue = x match { case ..$cases }"
+    }
+
+    def handleRPCImpl = {
+      val cases = c.mirror.staticPackage("models").typeSignature.members
+        .filter(_.isModule)
+        .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+        .flatMap(daoSymbol => {
+          val baseType = daoSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+          val TypeRef(_, _, List(modelType, _)) = baseType
+
+          val modelSymbol = modelType.typeSymbol.companionSymbol
+          val modelName = modelSymbol.name.decoded.toLowerCase
+          val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
+          val writesName = newTermName(writesSymbol.name.toString.trim)
+
+          val methods = daoSymbol.typeSignature.members
+            .filter(m => m.name.decoded.endsWith("RPC"))
+            .map(_.asMethod)
+
+          methods.map(methodSymbol => {
+            val methodName = "RPC$".r.replaceAllIn(methodSymbol.name.decoded, "")
+            val args = methodSymbol.paramss.head.map(argSymbol => {
+              val argType = argSymbol.typeSignature
+              val common = q"args.get(${argSymbol.name.decoded}).map(_.as[$argType])"
+
+              if (argType =:= typeOf[String]) {
+                q"""$common.getOrElse("")"""
+              } else if (argType =:= typeOf[Boolean]) {
+                q"$common.getOrElse(false)"
+              } else if (argType =:= typeOf[Short]) {
+                q"$common.getOrElse(0:Short)"
+              } else if (argType =:= typeOf[Int]) {
+                q"$common.getOrElse(0)"
+              } else if (argType =:= typeOf[Long]) {
+                q"$common.getOrElse(0:Long)"
+              } else if (argType =:= typeOf[Double]) {
+                q"$common.getOrElse(0.0)"
+              } else if (argType =:= typeOf[Float]) {
+                q"$common.getOrElse(0:Float)"
+              } else if (argType =:= typeOf[DateTime]) {
+                q"$common.getOrElse(new DateTime)"
+              } else if (argType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
+                val enum = argType.asInstanceOf[TypeRefApi].pre.termSymbol
+                q"$common.getOrElse($enum.values.firstKey)"
+              } else if (argType <:< typeOf[Option[_]]) {
+                q"$common.getOrElse(None)"
+              } else {
+                c.abort(c.enclosingPosition, "Exposed method takes argument of unsupported type")
+              }
+            })
+            cq"($modelName, $methodName) => Some(play.api.libs.json.Json.toJson($daoSymbol.$methodSymbol(..$args).list()(s).toArray.map(_.asInstanceOf[$modelType]))(play.api.libs.json.Writes.arrayWrites[$modelType](implicitly, $modelSymbol.$writesName)))"
+          })
+        }).toList :+ cq"_ => None"
+
+      q"def handleRPC(model: String, method: String, args: Map[String, JsValue], s: play.api.db.slick.Config.driver.simple.Session): Option[JsValue] = (model, method) match { case ..$cases }"
+    }
+
+    def handleCreateImpl = {
+      val cases = c.mirror.staticPackage("models").typeSignature.members
+        .filter(_.isModule)
+        .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+        .map(moduleSymbol => {
+          val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+          val TypeRef(_, _, List(modelType, _)) = baseType
+
+          val modelSymbol = modelType.typeSymbol.companionSymbol
+          val caseName = modelSymbol.name.decoded.toLowerCase
+          val writesSymbol = modelSymbol.typeSignature.members.find(_.typeSignature <:< typeOf[OFormat[_]]).get
+          val writesName = newTermName(writesSymbol.name.toString.trim)
+
+          cq"$caseName => play.api.libs.json.Json.fromJson(y)($modelSymbol.$writesName)"
+        })
+
+      q"def handleCreate(x: String, y: play.api.libs.json.JsValue): Any = x match { case ..$cases }"
+    }
+
+    def generateSorterImpl = {
+      val models = c.mirror.staticPackage("models").typeSignature.members
+        .filter(_.isModule)
+        .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+        .map(moduleSymbol => {
+          val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+          val TypeRef(_, _, List(modelType, tableType)) = baseType
+          val tableName = tableType.typeSymbol
+
+          val ctor = modelType.declarations
+            .filter(_.isMethod)
+            .map(_.asMethod)
+            .find(_.isConstructor)
+            .get
+
+          val cols = ctor.asMethod.paramss.head
+            .filter(_.isTerm)
+            .flatMap({ m => 
+              val colName = m.name.toTermName
+              val colNameString = colName.decoded
+
+              Seq(
+                cq"$colNameString if direction => x.$colName.asc",
+                cq"$colNameString if !direction => x.$colName.desc"
+              )
+            }).toList :+ cq"_ => x.id.asc"
+
+
+          cq"x:$tableName => col match { case ..$cols }"
+        }).toList
+
+      q"def generateSorter(row: scala.slick.lifted.AbstractTable[_], col: String, direction: Boolean): scala.slick.lifted.ColumnOrdered[_] = row match { case ..$models }"
+    }
+
+    def generatePredicateParser(colType: c.Type) = {
+      if (colType =:= typeOf[String]) {
+        (List("eq", "neq", "like"), q"arg")
+      } else if (colType =:= typeOf[Boolean]) {
+        (List("eq", "neq"), q"arg.toBoolean")
+      } else if (colType =:= typeOf[Short]) {
+        (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toShort")
+      } else if (colType =:= typeOf[Int]) {
+        (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toInt")
+      } else if (colType =:= typeOf[Long]) {
+        (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toLong")
+      } else if (colType =:= typeOf[Double]) {
+        (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toDouble")
+      } else if (colType =:= typeOf[Float]) {
+        (List("eq", "neq", "gt", "lt", "ge", "le"), q"arg.toFloat")
+      } else if (colType =:= typeOf[DateTime]) {
+        (List("eq", "neq", "gt", "lt", "ge", "le"), q"org.joda.time.DateTime.parse(arg, org.joda.time.format.ISODateTimeFormat.dateTime())")
+      // } else if (colType <:< typeOf[Option[_]]) {
+      //   val (_, inner) = generatePredicateParser(c)(colType.asInstanceOf[TypeRefApi].args.head)
+      //   (List("eq", "neq"), q"$inner")
+      } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
+        val enumType = colType.asInstanceOf[TypeRefApi].pre
+        val enumName = enumType.termSymbol
+        (List("eq", "neq"), q"$enumName.withName(arg)")
+      } else {
+        (List(), null)
+      }
+    }
+
+    def generatePredicateImpl = {
+      val models = c.mirror.staticPackage("models").typeSignature.members
+        .filter(_.isModule)
+        .filter(_.typeSignature.baseClasses.contains(typeOf[DAO[_, _]].typeSymbol))
+        .map(moduleSymbol => {
+          val baseType = moduleSymbol.typeSignature.baseType(typeOf[DAO[_, _]].typeSymbol)
+          val TypeRef(_, _, List(modelType, tableType)) = baseType
+          val tableName = tableType.typeSymbol
+
+          val ctor = modelType.declarations
+            .filter(_.isMethod)
+            .map(_.asMethod)
+            .find(_.isConstructor)
+            .get
+
+          val cols = ctor.asMethod.paramss.head
+            .filter(_.isTerm)
+            .flatMap({ m => 
+              val colType = m.typeSignature
+              val colName = m.name.toTermName
+
+              val (opNames, arg) = generatePredicateParser(colType)
+
+              lazy val opMethodMap = Map(
+                "eq" -> "$eq$eq$eq",
+                "neq" -> "$eq$bang$eq",
+                "gt" -> "$greater",
+                "lt" -> "$less",
+                "ge" -> "$greater$eq",
+                "le" -> "$less$eq",
+                "like" -> "like"
+              )
+
+              opNames.map({opName =>
+                val predName = colName.decoded + "_" + opName
+                val op = newTermName(opMethodMap.get(opName).get)
+
+                cq"$predName => x.$colName.$op($arg)"
+              })
+            }).toList :+ cq"_ => true"
+
+
+          cq"x:$tableName => pred match { case ..$cols }"
+        }).toList
+
+      q"def generatePredicate(row: scala.slick.lifted.AbstractTable[_], pred: String, arg: String): Column[Boolean] = row match { case ..$models }"
+    }
+
+    def modifyModule(moduleDef: ModuleDef) = {
+      val methods = Seq(
+        handleIndexImpl,
+        handleGetImpl,
+        handleRPCImpl,
+        handleCreateImpl,
+        generateSorterImpl,
+        generatePredicateImpl
+      )
+      val q"object $obj extends ..$bases { ..$body }" = moduleDef
+      q"""
+        object $obj extends ..$bases {
+          ..$body
+          ..$methods
+        }
+      """
+    }
+
+    annottees.map(_.tree) match {
+      case (moduleDef: ModuleDef) :: Nil => c.Expr(modifyModule(moduleDef))
+      case _ => c.abort(c.enclosingPosition, "Invalid annottee")
+    }
   }
 }
