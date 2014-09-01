@@ -4,12 +4,12 @@ import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._
 import play.api.data.FormError
 import play.api.data.format.Formatter
-import play.api.data.format.Formats.stringFormat
+import play.api.data.format.Formats.intFormat
 
 // EnumerationからTable[A]へのmappingを自動的に行うためのクラス
 abstract class Enum extends Enumeration {
-  def names: scala.collection.SortedSet[String] = {
-    values.map(_.toString)
+  def options: Seq[(String, String)] = {
+    values.map(v => (v.id.toString, v.toString)).toSeq
   }
 
   implicit val enumColumnType = MappedColumnType.base[Value, Int](
@@ -29,15 +29,15 @@ abstract class Enum extends Enumeration {
   implicit val format = Format(reads, writes)
   implicit val formatter = new Formatter[Value] {
     def bind(key: String, data: Map[String, String]) = {
-      stringFormat.bind(key, data).right.flatMap { value =>
+      intFormat.bind(key, data).right.flatMap { value =>
         scala.util.control.Exception.allCatch[Value]
-          .either(withName(value))
+          .either(apply(value))
           .left.map(e => Seq(FormError(key, "error.enum", Nil)))
       }
     }
 
     def unbind(key: String, value: Value) = Map(
-      key -> value.toString
+      key -> value.id.toString
     )
   }
 }
