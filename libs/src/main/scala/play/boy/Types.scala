@@ -8,6 +8,10 @@ import play.api.data.format.Formats.stringFormat
 
 // EnumerationからTable[A]へのmappingを自動的に行うためのクラス
 abstract class Enum extends Enumeration {
+  def names: scala.collection.SortedSet[String] = {
+    values.map(_.toString)
+  }
+
   implicit val enumColumnType = MappedColumnType.base[Value, Int](
     _.id,
     this.apply _
