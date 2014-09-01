@@ -8,7 +8,7 @@ import play.api.db.slick.Config.driver.simple._
 import play.boy._
 import play.boy.macros._
 
-import models.Users._
+import models._
 
 @rest
 object REST extends Controller {

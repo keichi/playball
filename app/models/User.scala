@@ -94,6 +94,4 @@ object Users extends DAO[User, Users] with UserDAOLike {
   override def findById(id: Long)(implicit s: Session) = {
     query.filter(_.id === id).firstOption
   }
-
-  implicit val userDAO = Users
 }
