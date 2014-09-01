@@ -6,7 +6,6 @@ import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._
 
 import play.boy._
-import play.boy.joda._
 import play.boy.macros._
 
 import models.Users._

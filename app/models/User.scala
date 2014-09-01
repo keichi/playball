@@ -7,7 +7,6 @@ import org.joda.time.DateTime
 
 import play.api.libs.json.Json
 import play.boy._
-import play.boy.joda._
 
 object Role extends Enum with RoleLike {
   type Role = Value
@@ -41,7 +40,6 @@ case class User(
 ) extends UserLike
 
 object User {
-  import play.boy.json._
   implicit val format = Json.format[User]
 }
 

@@ -7,7 +7,6 @@ import org.joda.time.DateTime
 
 import play.api.libs.json.Json
 import play.boy._
-import play.boy.joda._
 
 // 列挙型はEnumを継承する。使い方はEnumerationと同じ。
 object BeerStyle extends Enum {
@@ -46,7 +45,6 @@ case class BeerBrand(
 )
 
 object BeerBrand {
-  import play.boy.json._
   implicit val format = Json.format[BeerBrand]
 }
 
