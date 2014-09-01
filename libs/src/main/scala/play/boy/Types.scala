@@ -2,6 +2,9 @@ package play.boy
 
 import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._
+import play.api.data.FormError
+import play.api.data.format.Formatter
+import play.api.data.format.Formats.stringFormat
 
 // EnumerationからTable[A]へのmappingを自動的に行うためのクラス
 abstract class Enum extends Enumeration {
@@ -20,6 +23,19 @@ abstract class Enum extends Enumeration {
     }
   }
   implicit val format = Format(reads, writes)
+  implicit val formatter = new Formatter[Value] {
+    def bind(key: String, data: Map[String, String]) = {
+      stringFormat.bind(key, data).right.flatMap { value =>
+        scala.util.control.Exception.allCatch[Value]
+          .either(withName(value))
+          .left.map(e => Seq(FormError(key, "error.enum", Nil)))
+      }
+    }
+
+    def unbind(key: String, value: Value) = Map(
+      key -> value.toString
+    )
+  }
 }
 
 abstract trait ColumnBase {
