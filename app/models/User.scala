@@ -6,11 +6,8 @@ import scala.slick.lifted.Tag
 import org.joda.time.DateTime
 
 import play.api.libs.json.Json
-import play.boy.dao.DAO
-import play.boy.annotation._
-import play.boy.types._
-import play.boy.types.joda._
-import play.boy.auth._
+import play.boy._
+import play.boy.joda._
 
 object Role extends Enum with RoleLike {
   type Role = Value
@@ -44,7 +41,7 @@ case class User(
 ) extends UserLike
 
 object User {
-  import play.boy.types.json._
+  import play.boy.json._
   implicit val format = Json.format[User]
 }
 

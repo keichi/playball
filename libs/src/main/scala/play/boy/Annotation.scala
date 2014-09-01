@@ -1,10 +1,8 @@
-package play.boy.annotation
+package play.boy
 
 import scala.annotation.StaticAnnotation
-import play.boy.auth.RoleLike
 
 // modelクラスのメンバに使えるアノテーション
 case class label(message: String) extends StaticAnnotation
-case class text(rows: Int) extends StaticAnnotation
 case class authorize(role: RoleLike#Value, read: Boolean, write: Boolean) extends StaticAnnotation
 case class authorizeDefault(read: Boolean, write: Boolean) extends StaticAnnotation

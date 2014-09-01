@@ -5,11 +5,9 @@ import play.api.db.slick._
 import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._
 
-import play.boy.dao._
+import play.boy._
+import play.boy.joda._
 import play.boy.macros._
-import play.boy.types._
-import play.boy.types.joda._
-import play.boy.auth.Auth
 
 import models.Users._
 
@@ -143,8 +141,8 @@ object REST extends Controller {
           )
 
         val specific = col match {
-          case StringColumn(_, _, _, rows) =>
-            List("type" -> Json.toJson("string"), "rows" -> Json.toJson(rows))
+          case StringColumn(_, _, _) =>
+            List("type" -> Json.toJson("string"))
           case BooleanColumn(_, _, _) =>
             List("type" -> Json.toJson("boolean"))
           case DateTimeColumn(_, _, _) =>

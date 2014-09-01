@@ -7,8 +7,7 @@ import play.api.libs.json._
 import scala.slick.lifted.{AbstractTable, Column, ColumnOrdered}
 import scala.annotation.StaticAnnotation
 
-import play.boy.dao._
-import play.boy.types._
+import play.boy._
 
 object Macros {
   def daoMap = macro daoMapImpl
@@ -38,26 +37,21 @@ object Macros {
     import c.universe._
 
     if (colType =:= typeOf[String]) {
-      val rows = originalSymbol.annotations
-        .find(_.tpe =:= typeOf[play.boy.annotation.text])
-        .map(x => q"Some(${x.scalaArgs.head})")
-        .getOrElse(q"None")
-
-      q"play.boy.types.StringColumn($name, $label, $optional, $rows)"
+      q"StringColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Boolean]) {
-      q"play.boy.types.BooleanColumn($name, $label, $optional)"
+      q"BooleanColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[DateTime]) {
-      q"play.boy.types.DateTimeColumn($name, $label, $optional)"
+      q"DateTimeColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Short]) {
-      q"play.boy.types.ShortColumn($name, $label, $optional)"
+      q"ShortColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Int]) {
-      q"play.boy.types.IntColumn($name, $label, $optional)"
+      q"IntColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Long]) {
-      q"play.boy.types.LongColumn($name, $label, $optional)"
+      q"LongColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Double]) {
-      q"play.boy.types.DoubleColumn($name, $label, $optional)"
+      q"DoubleColumn($name, $label, $optional)"
     } else if (colType =:= typeOf[Float]) {
-      q"play.boy.types.FloatColumn($name, $label, $optional)"
+      q"FloatColumn($name, $label, $optional)"
     } else if (colType.asInstanceOf[TypeRefApi].pre <:< typeOf[Enum]) {
       val preType = colType.asInstanceOf[TypeRefApi].pre
       val enumSymbol = preType.termSymbol.asModule
@@ -71,12 +65,12 @@ object Macros {
         })
         .toList
 
-      q"play.boy.types.OptionColumn($name, $label, $optional, scala.collection.immutable.Map(..$options))"
+      q"OptionColumn($name, $label, $optional, scala.collection.immutable.Map(..$options))"
     } else if (colType <:< typeOf[Option[_]]) {
       val innerType = colType.asInstanceOf[TypeRefApi].args.head
       modelTmpImpl(c)(originalSymbol, innerType, name, label, true)
     } else {
-      q"play.boy.types.InvalidColumn($name, $label, $optional)"
+      q"InvalidColumn($name, $label, $optional)"
     }
   }
 
@@ -104,13 +98,13 @@ object Macros {
             val colType = m.typeSignature
             val name = m.name.decoded
             val label = m.annotations
-              .find(_.tpe =:= typeOf[play.boy.annotation.label])
+              .find(_.tpe =:= typeOf[label])
               .map(x => q"Some(${x.scalaArgs.head})")
               .getOrElse(q"None")
             modelTmpImpl(c)(m, colType, name, label, false)
           }).toList
 
-        q"($modelName, play.boy.types.ModelMeta($modelFullName, scala.collection.immutable.List(..$cols)))"
+        q"($modelName, ModelMeta($modelFullName, scala.collection.immutable.List(..$cols)))"
       }).toList
 
     c.Expr(q"scala.collection.immutable.Map(..$tuples)")

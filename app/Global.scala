@@ -4,7 +4,7 @@ import play.api.Play.current
 import play.api.db.slick._
 
 import models._
-import play.boy.dao.DAO
+import play.boy._
 
 object Global extends GlobalSettings {
 
@@ -41,7 +41,7 @@ object Global extends GlobalSettings {
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-    import play.boy.utils.StringUtils._
+    import StringUtils._
 
     if (request.path.startsWith("/api/")) {
       lazy val regex = """/api/([^/]+)(/([^/]+))?/?""".r

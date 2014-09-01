@@ -1,4 +1,4 @@
-package play.boy.types
+package play.boy
 
 import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._
@@ -30,7 +30,7 @@ abstract trait ColumnBase {
 
 case class ModelMeta(name: String, cols: List[ColumnBase])
 
-case class StringColumn(val name: String, val label: Option[String], val optional: Boolean, val rows: Option[Int]) extends ColumnBase
+case class StringColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
 case class BooleanColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
 case class DateTimeColumn(val name: String, val label: Option[String], val optional: Boolean) extends ColumnBase
 

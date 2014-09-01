@@ -1,4 +1,4 @@
-package play.boy.dao
+package play.boy
 
 import scala.reflect.runtime.currentMirror
 import scala.reflect.runtime.universe._
@@ -6,8 +6,6 @@ import scala.language.reflectiveCalls
 import org.joda.time.DateTime
 import play.api.db.slick.Config.driver.simple._
 import com.github.tototoshi.csv.{CSVReader, CSVWriter}
-import play.boy.auth.{Auth, RoleLike}
-import play.boy.annotation.{authorize, authorizeDefault}
 
 // ダックタイピング用のstructural typeをまとめたクラス
 object Duck {

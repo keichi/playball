@@ -6,10 +6,8 @@ import scala.slick.lifted.Tag
 import org.joda.time.DateTime
 
 import play.api.libs.json.Json
-import play.boy.dao.DAO
-import play.boy.annotation._
-import play.boy.types._
-import play.boy.types.joda._
+import play.boy._
+import play.boy.joda._
 
 // 列挙型はEnumを継承する。使い方はEnumerationと同じ。
 object BeerStyle extends Enum {
@@ -39,7 +37,7 @@ case class BeerBrand(
   tasty: Boolean,
   @label("アルコール度数")
   strength: Double,
-  @label("コメント") @text(5)
+  @label("コメント")
   comment: String,
   createdBy: Option[Long] = None,
   updatedBy: Option[Long] = None,
@@ -48,7 +46,7 @@ case class BeerBrand(
 )
 
 object BeerBrand {
-  import play.boy.types.json._
+  import play.boy.json._
   implicit val format = Json.format[BeerBrand]
 }
 

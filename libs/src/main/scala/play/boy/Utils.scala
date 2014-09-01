@@ -1,4 +1,4 @@
-package play.boy.utils
+package play.boy
 
 object StringUtils {
   implicit class StringImprovements(val s: String) {
