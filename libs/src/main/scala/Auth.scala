@@ -2,7 +2,6 @@ package play.boy.auth
 
 import play.api.Play.current
 import play.api.cache.Cache
-import scala.annotation.implicitNotFound
 import play.api.db.slick._
 import play.api.mvc._
 import play.boy.types.Enum
@@ -18,7 +17,6 @@ trait UserDAOLike {
   def findById(id: Long)(implicit ds: play.api.db.slick.Session): Option[UserLike]
 }
 
-@implicitNotFound("Both DB session and HTTP session is required.")
 object Auth {
   def isLoggedIn(implicit ds: play.api.db.slick.Session, s: play.api.mvc.Session): Boolean = {
     currentId.isDefined
