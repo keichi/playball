@@ -9,4 +9,10 @@ package object boy extends GenericJodaSupport(play.api.db.slick.Config.driver) {
   implicit object DefaultJodaDateWrites extends Writes[DateTime] {
     def writes(d: DateTime): JsValue = JsString(d.toString)
   }
+
+  implicit class StringImprovements(val s: String) {
+    import scala.util.control.Exception._
+    def toIntOpt = catching(classOf[NumberFormatException]) opt s.toInt
+    def toLongOpt = catching(classOf[NumberFormatException]) opt s.toLong
+  }
 }

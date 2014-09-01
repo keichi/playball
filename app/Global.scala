@@ -41,8 +41,6 @@ object Global extends GlobalSettings {
   }
 
   override def onRouteRequest(request: RequestHeader): Option[Handler] = {
-    import StringUtils._
-
     if (request.path.startsWith("/api/")) {
       lazy val regex = """/api/([^/]+)(/([^/]+))?/?""".r
       val regex(model, _, id) = request.path
@@ -65,5 +63,4 @@ object Global extends GlobalSettings {
       super.onRouteRequest(request)
     }    
   }
-
 }
