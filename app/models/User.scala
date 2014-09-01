@@ -90,8 +90,4 @@ object Users extends DAO[User, Users] with UserDAOLike {
     query.filter(u => u.username === username && u.password === oldPassword)
     .map(r => (r.password, r.hashed)).update((hashPassword(newPassword), true))
   }
-
-  override def findById(id: Long)(implicit s: Session) = {
-    query.filter(_.id === id).firstOption
-  }
 }
