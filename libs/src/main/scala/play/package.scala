@@ -2,7 +2,7 @@ package play
 
 import com.github.tototoshi.slick.GenericJodaSupport
 
-package object boy extends GenericJodaSupport(play.api.db.slick.Config.driver) {
+package object ball extends GenericJodaSupport(play.api.db.slick.Config.driver) {
   import org.joda.time.DateTime
   import play.api.libs.json._
 

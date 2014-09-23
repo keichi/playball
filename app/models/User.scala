@@ -6,7 +6,7 @@ import scala.slick.lifted.Tag
 import org.joda.time.DateTime
 
 import play.api.libs.json.Json
-import play.boy._
+import play.ball._
 
 object Role extends Enum with RoleLike {
   type Role = Value

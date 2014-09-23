@@ -1,4 +1,4 @@
-name := "playboy-app"
+name := "playball-app"
 
 version := "1.0-SNAPSHOT"
 

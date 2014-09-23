@@ -1,4 +1,4 @@
-@(columns: Seq[play.boy.ColumnBase])(implicit flash: Flash)
+@(columns: Seq[play.ball.ColumnBase])(implicit flash: Flash)
 
 @main("Model Dump") {
 	<form class="form-horizontal" role="form" action="/test" method="post">
@@ -7,35 +7,35 @@
 		    <label for="@column.name" class="col-sm-2 control-label">@column.label</label>
 		    <div class="col-sm-6">
 	    	@column match {
-	    	case play.boy.StringColumn(_, _, _) => {
+	    	case play.ball.StringColumn(_, _, _) => {
 	    		<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label">
 	    	}
-	    	case play.boy.BooleanColumn(_, _, _) => {
+	    	case play.ball.BooleanColumn(_, _, _) => {
 		    	<input type="checkbox" class="form-control" name="@column.name" id="@column.name"></input>
 	    	}
-	    	case play.boy.ShortColumn(_, _, _) => {
+	    	case play.ball.ShortColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.IntColumn(_, _, _) => {
+	    	case play.ball.IntColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.LongColumn(_, _, _) => {
+	    	case play.ball.LongColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.DoubleColumn(_, _, _) => {
+	    	case play.ball.DoubleColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.FloatColumn(_, _, _) => {
+	    	case play.ball.FloatColumn(_, _, _) => {
 		    	<input type="text" class="form-control" name="@column.name" id="@column.name" placeholder="@column.label"></input>
 	    	}
-	    	case play.boy.OptionColumn(_, _, _, options) => {
+	    	case play.ball.OptionColumn(_, _, _, options) => {
 				<select class="form-control" name="@column.name" id="@column.name">
 				@for((s, _) <- options) {
 					<option>@s</option>
 				}
 				</select>
 	    	}
-	    	case play.boy.DateTimeColumn(_, _, _) => {
+	    	case play.ball.DateTimeColumn(_, _, _) => {
 				<div class="input-group date-control"  name="@column.name" id="@column.name">
 					<input type="text" class="form-control" />
 					<span class="input-group-addon">
@@ -43,7 +43,7 @@
 					</span>
 				</div>
 	    	}
-	    	case play.boy.InvalidColumn(_, _, _) => {
+	    	case play.ball.InvalidColumn(_, _, _) => {
 	    	}
 	    	}
 		    </div>

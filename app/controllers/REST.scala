@@ -5,8 +5,8 @@ import play.api.db.slick._
 import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._
 
-import play.boy._
-import play.boy.macros._
+import play.ball._
+import play.ball.macros._
 
 import models._
 

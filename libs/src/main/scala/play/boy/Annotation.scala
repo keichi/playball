@@ -1,4 +1,4 @@
-package play.boy
+package play.ball
 
 import scala.annotation.StaticAnnotation
 

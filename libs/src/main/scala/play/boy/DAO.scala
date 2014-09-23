@@ -1,4 +1,4 @@
-package play.boy
+package play.ball
 
 import scala.reflect.runtime.currentMirror
 import scala.reflect.runtime.universe._

@@ -6,7 +6,7 @@ import scala.slick.lifted.Tag
 import org.joda.time.DateTime
 
 import play.api.libs.json.Json
-import play.boy._
+import play.ball._
 
 // 列挙型はEnumを継承する。使い方はEnumerationと同じ。
 object BeerStyle extends Enum {

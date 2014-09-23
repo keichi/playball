@@ -10,7 +10,7 @@ import play.api.db.slick.Config.driver.simple._
 import play.api.Play.current
 
 import models.Users
-import play.boy._
+import play.ball._
 
 object LogInOut extends Controller {
   val loginForm = Form(

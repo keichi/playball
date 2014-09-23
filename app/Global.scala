@@ -4,7 +4,7 @@ import play.api.Play.current
 import play.api.db.slick._
 
 import models._
-import play.boy._
+import play.ball._
 
 object Global extends GlobalSettings {
 

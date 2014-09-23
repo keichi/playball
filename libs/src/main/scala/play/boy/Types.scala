@@ -1,4 +1,4 @@
-package play.boy
+package play.ball
 
 import play.api.libs.json._
 import play.api.db.slick.Config.driver.simple._

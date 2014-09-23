@@ -1,4 +1,4 @@
-package play.boy.macros
+package play.ball.macros
 
 import language.experimental.macros
 import scala.reflect.macros._
@@ -7,7 +7,7 @@ import play.api.libs.json._
 import scala.slick.lifted.{AbstractTable, Column, ColumnOrdered}
 import scala.annotation.StaticAnnotation
 
-import play.boy._
+import play.ball._
 
 object Macros {
   def daoMap = macro daoMapImpl

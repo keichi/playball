@@ -1,4 +1,4 @@
-package play.boy
+package play.ball
 
 import play.api.Play.current
 import play.api.cache.Cache
