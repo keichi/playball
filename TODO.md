@@ -1,4 +1,4 @@
-# PlayboyのToDo
+# PlayballのToDo
 
 - クライアント側ライブラリ
 - OptionのカラムでのRESTクエリ
