@@ -25,17 +25,6 @@ object Duck {
   }
 }
 
-// これは別ファイルに分けた方がいいかも
-object Util {
-  // リソース開放のためのLoan Pattern
-  def using[A, R <: { def close() }](r : R)(f : R => A) : A =
-    try {
-      f(r)
-    } finally {
-      r.close()
-  }
-}
-
 // A: モデルクラス, B: Aをmappingするテーブル定義クラス
 abstract class DAO[A <: Duck.Model: TypeTag : scala.reflect.ClassTag, B <: Table[A] with Duck.Table] {
   type Model = A
