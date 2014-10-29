@@ -28,3 +28,7 @@ lazy val libs = project
 lazy val macros = project
     .aggregate(libs)
     .dependsOn(libs)
+
+lazy val kickoff = project
+    .aggregate(app)
+    .dependsOn(app)

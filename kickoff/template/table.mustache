@@ -1,0 +1,25 @@
+import play.api.db.slick.Config.driver.simple._
+import scala.slick.lifted.Tag
+import org.joda.time.DateTime
+import play.api.libs.json.Json
+
+// Companion object for model class
+object {{name}} {
+  implicit val format = Json.format[{{name}}]
+}
+
+// Slick table definition class
+class {{name}}s(tag: Tag) extends Table[{{name}}](tag, "{{nameNormalized}}") {
+  {{#columns}}
+  def {{name}} = column[{{type}}]("{{nameNormalized}}"{{#attributes}}, O.{{.}}{{/attributes}})
+  {{/columns}}
+
+  // Default projection
+  def * = ({{columnNameList}}) <> (({{name}}.apply _).tupled, {{name}}.unapply _)
+}
+
+object {{name}}s extends DAO[{{name}}, {{name}}s] {
+  val query = TableQuery[{{name}}s]
+
+  // Insert DAO methods here
+}
