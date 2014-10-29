@@ -6,5 +6,5 @@
 1. activator/sbtを起動
 2. `project kickoff`
 3. `run 生成するクラスの完全修飾名 テンプレートのパス 出力ディレクトリ`
-	
-	例: `run models.BeerBrand kickoff/template/table.mustache output`
+	- 例: `run models.BeerBrand kickoff/template/table.mustache output`
+	- 注: 出力ディレクトリは事前に作成しておいてください。
